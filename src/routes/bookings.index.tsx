@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockBookings, type BookingStatus } from '../mock/bookings'
 
 export const Route = createFileRoute('/bookings/')({
@@ -8,6 +9,14 @@ export const Route = createFileRoute('/bookings/')({
 })
 
 function Bookings() {
+  return (
+    <ProtectedRoute>
+      <BookingsContent />
+    </ProtectedRoute>
+  )
+}
+
+function BookingsContent() {
   const navigate = useNavigate()
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'ALL'>('ALL')
 

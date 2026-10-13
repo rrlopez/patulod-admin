@@ -14,11 +14,21 @@
     "lint": "biome lint",
     "check": "biome check",
     "post-cta-init": "npx -y create-db@latest --user-agent tanstack/tsrouter",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose stop",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f postgres",
+    "docker:restart": "docker-compose restart",
+    "docker:ps": "docker-compose ps",
     "db:generate": "dotenv -e .env.local -- prisma generate",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:studio": "dotenv -e .env.local -- prisma studio",
-    "db:seed": "dotenv -e .env.local -- prisma db seed"
+    "db:seed": "dotenv -e .env.local -- prisma db seed",
+    "db:reset": "dotenv -e .env.local -- prisma db push --force-reset && pnpm db:seed",
+    "create-admin": "dotenv -e .env.local -- tsx prisma/create-admin.ts",
+    "setup": "pnpm install && pnpm docker:start && timeout /t 10 && pnpm db:generate && pnpm db:push && pnpm db:seed",
+    "start": "pnpm docker:start && pnpm dev"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",
@@ -61,7 +71,7 @@
     "vite": "^8.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
+    "allowedBuiltDependencies": [
       "esbuild",
       "lightningcss",
       "@prisma/engines",

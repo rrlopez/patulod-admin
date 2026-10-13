@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockDriverApplications } from '../mock/drivers'
 
 export const Route = createFileRoute('/drivers/')({
@@ -7,6 +8,14 @@ export const Route = createFileRoute('/drivers/')({
 })
 
 function DriverApplications() {
+  return (
+    <ProtectedRoute>
+      <DriverApplicationsContent />
+    </ProtectedRoute>
+  )
+}
+
+function DriverApplicationsContent() {
   return (
     <Layout>
       <div className="mb-4">

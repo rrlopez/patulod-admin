@@ -1,15 +1,15 @@
-import { Link, useRouterState } from '@tanstack/react-router'
+import { Link, useRouterState, useNavigate } from '@tanstack/react-router'
+import { useSession, signOut } from '../lib/auth-client'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouterState()
+  const navigate = useNavigate()
   const currentPath = router.location.pathname
-  
-  // Mock session - in production this would come from better-auth
-  const session = {
-    user: {
-      name: 'Admin User',
-      email: 'admin@patulod.com',
-    },
+  const { data: session } = useSession()
+
+  const handleLogout = async () => {
+    await signOut()
+    navigate({ to: '/login', replace: true })
   }
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/')
@@ -58,31 +58,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <div className="dropdown dropdown-end">
                   <label tabIndex={0} className="btn btn-ghost btn-circle avatar placeholder">
                     <div className="bg-primary text-primary-content rounded-full w-10">
-                      <span className="text-xs">{session.user.name?.[0] || 'A'}</span>
+                      <span className="text-xs">{session.user?.name?.[0] || 'A'}</span>
                     </div>
                   </label>
                   <ul
                     tabIndex={0}
                     className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-200 rounded-box w-52"
                   >
-                    <li>
-                      <a className="justify-between">
-                        Profile
-                        <span className="badge">New</span>
-                      </a>
+                    <li className="menu-title">
+                      <span className="text-xs">{session.user?.email}</span>
                     </li>
                     <li>
                       <Link to="/settings">Settings</Link>
                     </li>
                     <li>
-                      <a
-                        onClick={() => {
-                          localStorage.removeItem('adminToken')
-                          window.location.href = '/login'
-                        }}
-                      >
+                      <button onClick={handleLogout}>
                         Logout
-                      </a>
+                      </button>
                     </li>
                   </ul>
                 </div>

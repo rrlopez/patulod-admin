@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockPolicies } from '../mock/policies'
 
 export const Route = createFileRoute('/policies')({
@@ -8,6 +9,14 @@ export const Route = createFileRoute('/policies')({
 })
 
 function PolicyEditor() {
+  return (
+    <ProtectedRoute>
+      <PolicyEditorContent />
+    </ProtectedRoute>
+  )
+}
+
+function PolicyEditorContent() {
   const [selectedPolicy, setSelectedPolicy] = useState(mockPolicies[0])
 
   return (

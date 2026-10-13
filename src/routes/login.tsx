@@ -1,12 +1,22 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
+import { signIn } from '../lib/auth-client'
+import { PublicRoute } from '../lib/public-route'
 
 export const Route = createFileRoute('/login')({
   component: Login,
 })
 
 function Login() {
+  return (
+    <PublicRoute>
+      <LoginContent />
+    </PublicRoute>
+  )
+}
+
+function LoginContent() {
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
   const [email, setEmail] = useState('')
@@ -18,20 +28,33 @@ function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    
     if (!email || !password) {
       setError('Please enter both email and password')
       return
     }
+    
     setIsLoading(true)
-    setTimeout(() => {
-      if (email === 'admin@patulod.com' && password === 'admin123') {
-        localStorage.setItem('adminToken', 'mock-token')
-        navigate({ to: '/dashboard' })
-      } else {
-        setError('Invalid email or password')
+    
+    try {
+      const result = await signIn.email({
+        email,
+        password,
+      })
+
+      if (result.error) {
+        setError(result.error.message || 'Invalid email or password')
+        setIsLoading(false)
+        return
       }
+
+      // Success - redirect to dashboard
+      navigate({ to: '/dashboard' })
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('An error occurred during login. Please try again.')
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -251,25 +274,11 @@ function Login() {
                   )}
                 </button>
               </form>
-
-              <div className="divider text-xs text-base-content/40">
-                Demo Credentials
-              </div>
-              <div className="bg-base-300 rounded-lg p-3 text-xs font-mono space-y-1">
-                <p>
-                  <span className="text-primary font-semibold">Email:</span>{' '}
-                  admin@patulod.com
-                </p>
-                <p>
-                  <span className="text-primary font-semibold">Password:</span>{' '}
-                  admin123
-                </p>
-              </div>
             </div>
           </div>
 
           <p className="text-center mt-4 text-xs text-base-content/40">
-            Phase 0.5 • Mock UI
+            PATULOD Admin Portal
           </p>
         </div>
       </div>

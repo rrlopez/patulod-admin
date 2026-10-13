@@ -18,6 +18,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as BookingsIndexRouteImport } from './routes/bookings.index'
 import { Route as BookingsBookingIdRouteImport } from './routes/bookings.$bookingId'
 import { Route as DriversIndexRouteImport } from './routes/drivers.index'
+import { Route as DriversApplicationIdRouteImport } from './routes/drivers.$applicationId'
 import { Route as SupportIndexRouteImport } from './routes/support.index'
 import { Route as SupportCaseIdRouteImport } from './routes/support.$caseId'
 import { Route as UsersIndexRouteImport } from './routes/users.index'
@@ -69,6 +70,11 @@ const DriversIndexRoute = DriversIndexRouteImport.update({
   path: '/drivers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriversApplicationIdRoute = DriversApplicationIdRouteImport.update({
+  id: '/drivers/$applicationId',
+  path: '/drivers/$applicationId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportIndexRoute = SupportIndexRouteImport.update({
   id: '/support/',
   path: '/support/',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/policies': typeof PoliciesRoute
   '/settings': typeof SettingsRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/drivers/$applicationId': typeof DriversApplicationIdRoute
   '/support/$caseId': typeof SupportCaseIdRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/bookings/': typeof BookingsIndexRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/policies': typeof PoliciesRoute
   '/settings': typeof SettingsRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/drivers/$applicationId': typeof DriversApplicationIdRoute
   '/support/$caseId': typeof SupportCaseIdRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/bookings': typeof BookingsIndexRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/policies': typeof PoliciesRoute
   '/settings': typeof SettingsRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/drivers/$applicationId': typeof DriversApplicationIdRoute
   '/support/$caseId': typeof SupportCaseIdRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/bookings/': typeof BookingsIndexRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/policies'
     | '/settings'
     | '/bookings/$bookingId'
+    | '/drivers/$applicationId'
     | '/support/$caseId'
     | '/users/$userId'
     | '/bookings/'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/policies'
     | '/settings'
     | '/bookings/$bookingId'
+    | '/drivers/$applicationId'
     | '/support/$caseId'
     | '/users/$userId'
     | '/bookings'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/policies'
     | '/settings'
     | '/bookings/$bookingId'
+    | '/drivers/$applicationId'
     | '/support/$caseId'
     | '/users/$userId'
     | '/bookings/'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   PoliciesRoute: typeof PoliciesRoute
   SettingsRoute: typeof SettingsRoute
   BookingsBookingIdRoute: typeof BookingsBookingIdRoute
+  DriversApplicationIdRoute: typeof DriversApplicationIdRoute
   SupportCaseIdRoute: typeof SupportCaseIdRoute
   UsersUserIdRoute: typeof UsersUserIdRoute
   BookingsIndexRoute: typeof BookingsIndexRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriversIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/drivers/$applicationId': {
+      id: '/drivers/$applicationId'
+      path: '/drivers/$applicationId'
+      fullPath: '/drivers/$applicationId'
+      preLoaderRoute: typeof DriversApplicationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support/': {
       id: '/support/'
       path: '/support'
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   PoliciesRoute: PoliciesRoute,
   SettingsRoute: SettingsRoute,
   BookingsBookingIdRoute: BookingsBookingIdRoute,
+  DriversApplicationIdRoute: DriversApplicationIdRoute,
   SupportCaseIdRoute: SupportCaseIdRoute,
   UsersUserIdRoute: UsersUserIdRoute,
   BookingsIndexRoute: BookingsIndexRoute,

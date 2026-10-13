@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockUsers } from '../mock/users'
 import { mockBookings } from '../mock/bookings'
 
@@ -8,6 +9,14 @@ export const Route = createFileRoute('/users/$userId')({
 })
 
 function UserDetail() {
+  return (
+    <ProtectedRoute>
+      <UserDetailContent />
+    </ProtectedRoute>
+  )
+}
+
+function UserDetailContent() {
   const { userId } = Route.useParams()
   const navigate = useNavigate()
   const user = mockUsers.find((u) => u.id === userId)

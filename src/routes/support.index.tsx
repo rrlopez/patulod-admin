@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockSupportCases } from '../mock/support'
 
 export const Route = createFileRoute('/support/')({
@@ -7,6 +8,14 @@ export const Route = createFileRoute('/support/')({
 })
 
 function SupportCases() {
+  return (
+    <ProtectedRoute>
+      <SupportCasesContent />
+    </ProtectedRoute>
+  )
+}
+
+function SupportCasesContent() {
   const navigate = useNavigate()
 
   return (

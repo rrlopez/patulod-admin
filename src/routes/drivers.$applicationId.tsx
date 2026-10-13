@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockDriverApplications, mockDriverProfiles, type DriverStatus } from '../mock/drivers'
 
 export const Route = createFileRoute('/drivers/$applicationId')({
@@ -15,6 +16,14 @@ const statusBadge: Record<DriverStatus, string> = {
 }
 
 function DriverApplicationDetail() {
+  return (
+    <ProtectedRoute>
+      <DriverApplicationDetailContent />
+    </ProtectedRoute>
+  )
+}
+
+function DriverApplicationDetailContent() {
   const { applicationId } = Route.useParams()
   const navigate = useNavigate()
   const [showRejectModal, setShowRejectModal] = useState(false)

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 
 export const Route = createFileRoute('/settings')({
   component: Settings,
@@ -9,6 +10,14 @@ export const Route = createFileRoute('/settings')({
 type Tab = 'general' | 'commission' | 'notifications' | 'system'
 
 function Settings() {
+  return (
+    <ProtectedRoute>
+      <SettingsContent />
+    </ProtectedRoute>
+  )
+}
+
+function SettingsContent() {
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
   return (

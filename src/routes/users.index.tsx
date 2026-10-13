@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockUsers, type MockUser, type UserRole, type UserStatus } from '../mock/users'
 
 export const Route = createFileRoute('/users/')({
@@ -20,6 +21,14 @@ const roleBadge: Record<UserRole, string> = {
 }
 
 function Users() {
+  return (
+    <ProtectedRoute>
+      <UsersContent />
+    </ProtectedRoute>
+  )
+}
+
+function UsersContent() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<UserRole | 'ALL'>('ALL')

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockBookings } from '../mock/bookings'
 import { mockDriverProfiles } from '../mock/drivers'
 import { mockSupportCases } from '../mock/support'
@@ -10,6 +11,14 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  )
+}
+
+function DashboardContent() {
   const navigate = useNavigate()
 
   const totalUsers = mockUsers.length

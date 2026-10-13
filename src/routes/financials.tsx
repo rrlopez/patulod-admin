@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockEarnings, mockFinancialSummary } from '../mock/financials'
 
 export const Route = createFileRoute('/financials')({
@@ -7,6 +8,14 @@ export const Route = createFileRoute('/financials')({
 })
 
 function FinancialReports() {
+  return (
+    <ProtectedRoute>
+      <FinancialReportsContent />
+    </ProtectedRoute>
+  )
+}
+
+function FinancialReportsContent() {
   return (
     <Layout>
       <div className="mb-4">

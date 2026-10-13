@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Layout from '../components/Layout'
+import { ProtectedRoute } from '../lib/auth-middleware'
 import { mockSupportCases, mockSupportNotes } from '../mock/support'
 
 export const Route = createFileRoute('/support/$caseId')({
@@ -7,6 +8,14 @@ export const Route = createFileRoute('/support/$caseId')({
 })
 
 function SupportCaseDetail() {
+  return (
+    <ProtectedRoute>
+      <SupportCaseDetailContent />
+    </ProtectedRoute>
+  )
+}
+
+function SupportCaseDetailContent() {
   const { caseId } = Route.useParams()
   const navigate = useNavigate()
   const supportCase = mockSupportCases.find((c) => c.id === caseId)
