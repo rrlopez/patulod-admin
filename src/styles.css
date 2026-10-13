@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 @plugin "daisyui";
 
@@ -16,3 +15,122 @@ body {
   margin: 0;
 }
 
+/* PATULOD Theme - Light Mode (Default) */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  
+  /* Primary: Forest Green */
+  --p: 164 82% 22%;
+  --pc: 0 0% 100%;
+  
+  /* Secondary: Gold */
+  --s: 43 96% 56%;
+  --sc: 217 19% 22%;
+  
+  /* Accent: Gold */
+  --a: 43 96% 56%;
+  --ac: 217 19% 22%;
+  
+  /* Neutral */
+  --n: 220 14% 46%;
+  --nc: 0 0% 100%;
+  
+  /* Base colors */
+  --b1: 0 0% 100%;
+  --b2: 210 20% 98%;
+  --b3: 214 15% 91%;
+  --bc: 217 19% 22%;
+  
+  /* State colors */
+  --in: 217 91% 60%;
+  --inc: 0 0% 100%;
+  --su: 158 64% 52%;
+  --suc: 0 0% 100%;
+  --wa: 32 95% 48%;
+  --wac: 0 0% 100%;
+  --er: 4 90% 58%;
+  --erc: 0 0% 100%;
+  
+  /* Rounded */
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 1.9rem;
+  
+  /* Animation */
+  --animation-btn: 0.25s;
+  --animation-input: 0.2s;
+  
+  /* Button border */
+  --btn-focus-scale: 0.95;
+  --border-btn: 1px;
+  
+  /* Tab */
+  --tab-border: 1px;
+  --tab-radius: 0.5rem;
+}
+
+/* PATULOD Theme - Dark Mode */
+[data-theme="dark"] {
+  color-scheme: dark;
+  
+  /* Primary: Lighter Green for dark mode */
+  --p: 158 64% 52%;
+  --pc: 0 0% 100%;
+  
+  /* Secondary: Gold */
+  --s: 43 96% 56%;
+  --sc: 217 19% 22%;
+  
+  /* Accent: Gold */
+  --a: 43 96% 56%;
+  --ac: 217 19% 22%;
+  
+  /* Neutral */
+  --n: 220 14% 62%;
+  --nc: 217 19% 22%;
+  
+  /* Base colors */
+  --b1: 217 19% 22%;
+  --b2: 220 18% 8%;
+  --b3: 215 14% 27%;
+  --bc: 210 20% 98%;
+  
+  /* State colors */
+  --in: 213 94% 68%;
+  --inc: 0 0% 100%;
+  --su: 158 64% 52%;
+  --suc: 0 0% 100%;
+  --wa: 43 96% 56%;
+  --wac: 217 19% 22%;
+  --er: 4 86% 70%;
+  --erc: 0 0% 100%;
+  
+  /* Rounded */
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 1.9rem;
+  
+  /* Animation */
+  --animation-btn: 0.25s;
+  --animation-input: 0.2s;
+  
+  /* Button border */
+  --btn-focus-scale: 0.95;
+  --border-btn: 1px;
+  
+  /* Tab */
+  --tab-border: 1px;
+  --tab-radius: 0.5rem;
+}
+
+/* Utility classes */
+.text-muted {
+  color: hsl(var(--bc) / 0.6);
+}
+
+/* Ensure theme is applied to html element */
+html {
+  background-color: hsl(var(--b1));
+  color: hsl(var(--bc));
+}

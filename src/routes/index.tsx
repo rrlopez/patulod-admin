@@ -1,14 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Navigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
-  return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold text-red-400">aaa Welcome to TanStack Startaaa aaa</h1>
-      <p className="mt-4 text-lg">
-        Edit <code>src/routes/index.tsx</code> to get started aaaaaaaaa.
-      </p>
-    </div>
-  )
+  // Check if user is logged in
+  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null
+  
+  if (token) {
+    return <Navigate to="/dashboard" />
+  }
+  
+  return <Navigate to="/login" />
 }

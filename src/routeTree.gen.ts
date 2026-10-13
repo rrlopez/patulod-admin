@@ -10,11 +10,83 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FinancialsRouteImport } from './routes/financials'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PoliciesRouteImport } from './routes/policies'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as BookingsIndexRouteImport } from './routes/bookings.index'
+import { Route as BookingsBookingIdRouteImport } from './routes/bookings.$bookingId'
+import { Route as DriversIndexRouteImport } from './routes/drivers.index'
+import { Route as SupportIndexRouteImport } from './routes/support.index'
+import { Route as SupportCaseIdRouteImport } from './routes/support.$caseId'
+import { Route as UsersIndexRouteImport } from './routes/users.index'
+import { Route as UsersUserIdRouteImport } from './routes/users.$userId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialsRoute = FinancialsRouteImport.update({
+  id: '/financials',
+  path: '/financials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliciesRoute = PoliciesRouteImport.update({
+  id: '/policies',
+  path: '/policies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsIndexRoute = BookingsIndexRouteImport.update({
+  id: '/bookings/',
+  path: '/bookings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsBookingIdRoute = BookingsBookingIdRouteImport.update({
+  id: '/bookings/$bookingId',
+  path: '/bookings/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriversIndexRoute = DriversIndexRouteImport.update({
+  id: '/drivers/',
+  path: '/drivers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportIndexRoute = SupportIndexRouteImport.update({
+  id: '/support/',
+  path: '/support/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportCaseIdRoute = SupportCaseIdRouteImport.update({
+  id: '/support/$caseId',
+  path: '/support/$caseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersIndexRoute = UsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersUserIdRoute = UsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -25,27 +97,118 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/financials': typeof FinancialsRoute
+  '/login': typeof LoginRoute
+  '/policies': typeof PoliciesRoute
+  '/settings': typeof SettingsRoute
+  '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/support/$caseId': typeof SupportCaseIdRoute
+  '/users/$userId': typeof UsersUserIdRoute
+  '/bookings/': typeof BookingsIndexRoute
+  '/drivers/': typeof DriversIndexRoute
+  '/support/': typeof SupportIndexRoute
+  '/users/': typeof UsersIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/financials': typeof FinancialsRoute
+  '/login': typeof LoginRoute
+  '/policies': typeof PoliciesRoute
+  '/settings': typeof SettingsRoute
+  '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/support/$caseId': typeof SupportCaseIdRoute
+  '/users/$userId': typeof UsersUserIdRoute
+  '/bookings': typeof BookingsIndexRoute
+  '/drivers': typeof DriversIndexRoute
+  '/support': typeof SupportIndexRoute
+  '/users': typeof UsersIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/financials': typeof FinancialsRoute
+  '/login': typeof LoginRoute
+  '/policies': typeof PoliciesRoute
+  '/settings': typeof SettingsRoute
+  '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/support/$caseId': typeof SupportCaseIdRoute
+  '/users/$userId': typeof UsersUserIdRoute
+  '/bookings/': typeof BookingsIndexRoute
+  '/drivers/': typeof DriversIndexRoute
+  '/support/': typeof SupportIndexRoute
+  '/users/': typeof UsersIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/financials'
+    | '/login'
+    | '/policies'
+    | '/settings'
+    | '/bookings/$bookingId'
+    | '/support/$caseId'
+    | '/users/$userId'
+    | '/bookings/'
+    | '/drivers/'
+    | '/support/'
+    | '/users/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/auth/$'
-  id: '__root__' | '/' | '/api/auth/$'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/financials'
+    | '/login'
+    | '/policies'
+    | '/settings'
+    | '/bookings/$bookingId'
+    | '/support/$caseId'
+    | '/users/$userId'
+    | '/bookings'
+    | '/drivers'
+    | '/support'
+    | '/users'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/financials'
+    | '/login'
+    | '/policies'
+    | '/settings'
+    | '/bookings/$bookingId'
+    | '/support/$caseId'
+    | '/users/$userId'
+    | '/bookings/'
+    | '/drivers/'
+    | '/support/'
+    | '/users/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  FinancialsRoute: typeof FinancialsRoute
+  LoginRoute: typeof LoginRoute
+  PoliciesRoute: typeof PoliciesRoute
+  SettingsRoute: typeof SettingsRoute
+  BookingsBookingIdRoute: typeof BookingsBookingIdRoute
+  SupportCaseIdRoute: typeof SupportCaseIdRoute
+  UsersUserIdRoute: typeof UsersUserIdRoute
+  BookingsIndexRoute: typeof BookingsIndexRoute
+  DriversIndexRoute: typeof DriversIndexRoute
+  SupportIndexRoute: typeof SupportIndexRoute
+  UsersIndexRoute: typeof UsersIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -56,6 +219,90 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financials': {
+      id: '/financials'
+      path: '/financials'
+      fullPath: '/financials'
+      preLoaderRoute: typeof FinancialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies': {
+      id: '/policies'
+      path: '/policies'
+      fullPath: '/policies'
+      preLoaderRoute: typeof PoliciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings/': {
+      id: '/bookings/'
+      path: '/bookings'
+      fullPath: '/bookings/'
+      preLoaderRoute: typeof BookingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings/$bookingId': {
+      id: '/bookings/$bookingId'
+      path: '/bookings/$bookingId'
+      fullPath: '/bookings/$bookingId'
+      preLoaderRoute: typeof BookingsBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drivers/': {
+      id: '/drivers/'
+      path: '/drivers'
+      fullPath: '/drivers/'
+      preLoaderRoute: typeof DriversIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support/': {
+      id: '/support/'
+      path: '/support'
+      fullPath: '/support/'
+      preLoaderRoute: typeof SupportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support/$caseId': {
+      id: '/support/$caseId'
+      path: '/support/$caseId'
+      fullPath: '/support/$caseId'
+      preLoaderRoute: typeof SupportCaseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/': {
+      id: '/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/$userId': {
+      id: '/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/users/$userId'
+      preLoaderRoute: typeof UsersUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -70,6 +317,18 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  FinancialsRoute: FinancialsRoute,
+  LoginRoute: LoginRoute,
+  PoliciesRoute: PoliciesRoute,
+  SettingsRoute: SettingsRoute,
+  BookingsBookingIdRoute: BookingsBookingIdRoute,
+  SupportCaseIdRoute: SupportCaseIdRoute,
+  UsersUserIdRoute: UsersUserIdRoute,
+  BookingsIndexRoute: BookingsIndexRoute,
+  DriversIndexRoute: DriversIndexRoute,
+  SupportIndexRoute: SupportIndexRoute,
+  UsersIndexRoute: UsersIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
