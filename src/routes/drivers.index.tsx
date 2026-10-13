@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import Layout from '../components/Layout'
 import { mockDriverApplications } from '../mock/drivers'
 
@@ -56,9 +56,13 @@ function DriverApplications() {
                     {new Date(app.appliedAt).toLocaleDateString()}
                   </td>
                   <td>
-                    <button className="btn btn-xs btn-primary btn-outline">
+                    <Link
+                      to="/drivers/$applicationId"
+                      params={{ applicationId: app.id }}
+                      className="btn btn-xs btn-primary btn-outline"
+                    >
                       Review
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}
