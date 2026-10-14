@@ -269,7 +269,6 @@ model FareConfig {
   updatedAt         DateTime  @updatedAt
 
   bookings          Booking[]
-  documents         DriverDocument[]
 
   @@map("fare_configs")
 }
