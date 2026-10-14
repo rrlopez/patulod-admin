@@ -24,10 +24,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       const html = document.documentElement
       if (isDark) {
-        html.setAttribute('data-theme', 'dark')
+        html.setAttribute('data-theme', 'patulod-dark')
         localStorage.setItem('theme', 'dark')
       } else {
-        html.setAttribute('data-theme', 'light')
+        html.setAttribute('data-theme', 'patulod')
         localStorage.setItem('theme', 'light')
       }
     }
@@ -37,7 +37,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const html = document.documentElement
-      html.setAttribute('data-theme', isDark ? 'dark' : 'light')
+      html.setAttribute('data-theme', isDark ? 'patulod-dark' : 'patulod')
     }
   }, [])
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Layout from '../components/Layout'
 import { ProtectedRoute } from '../lib/auth-middleware'
-import { mockDriverApplications, mockDriverProfiles, type DriverStatus } from '../mock/drivers'
+import { mockDriverApplications, type DriverStatus } from '../mock/drivers'
 
 export const Route = createFileRoute('/drivers/$applicationId')({
   component: DriverApplicationDetail,
