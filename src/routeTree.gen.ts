@@ -29,7 +29,9 @@ import { Route as ApiMobileAuthLoginRouteImport } from './routes/api/mobile/auth
 import { Route as ApiMobileAuthLogoutRouteImport } from './routes/api/mobile/auth/logout'
 import { Route as ApiMobileAuthMeRouteImport } from './routes/api/mobile/auth/me'
 import { Route as ApiMobileAuthRegisterRouteImport } from './routes/api/mobile/auth/register'
+import { Route as ApiMobileDriversApplicationRouteImport } from './routes/api/mobile/drivers/application'
 import { Route as ApiMobileDriversApplyRouteImport } from './routes/api/mobile/drivers/apply'
+import { Route as ApiMobileDriversUploadDocumentRouteImport } from './routes/api/mobile/drivers/upload-document'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -131,11 +133,23 @@ const ApiMobileAuthRegisterRoute = ApiMobileAuthRegisterRouteImport.update({
   path: '/api/mobile/auth/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileDriversApplicationRoute =
+  ApiMobileDriversApplicationRouteImport.update({
+    id: '/api/mobile/drivers/application',
+    path: '/api/mobile/drivers/application',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMobileDriversApplyRoute = ApiMobileDriversApplyRouteImport.update({
   id: '/api/mobile/drivers/apply',
   path: '/api/mobile/drivers/apply',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileDriversUploadDocumentRoute =
+  ApiMobileDriversUploadDocumentRouteImport.update({
+    id: '/api/mobile/drivers/upload-document',
+    path: '/api/mobile/drivers/upload-document',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -158,7 +172,9 @@ export interface FileRoutesByFullPath {
   '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
   '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
   '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
+  '/api/mobile/drivers/application': typeof ApiMobileDriversApplicationRoute
   '/api/mobile/drivers/apply': typeof ApiMobileDriversApplyRoute
+  '/api/mobile/drivers/upload-document': typeof ApiMobileDriversUploadDocumentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -181,7 +197,9 @@ export interface FileRoutesByTo {
   '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
   '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
   '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
+  '/api/mobile/drivers/application': typeof ApiMobileDriversApplicationRoute
   '/api/mobile/drivers/apply': typeof ApiMobileDriversApplyRoute
+  '/api/mobile/drivers/upload-document': typeof ApiMobileDriversUploadDocumentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,7 +223,9 @@ export interface FileRoutesById {
   '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
   '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
   '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
+  '/api/mobile/drivers/application': typeof ApiMobileDriversApplicationRoute
   '/api/mobile/drivers/apply': typeof ApiMobileDriversApplyRoute
+  '/api/mobile/drivers/upload-document': typeof ApiMobileDriversUploadDocumentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -230,7 +250,9 @@ export interface FileRouteTypes {
     | '/api/mobile/auth/logout'
     | '/api/mobile/auth/me'
     | '/api/mobile/auth/register'
+    | '/api/mobile/drivers/application'
     | '/api/mobile/drivers/apply'
+    | '/api/mobile/drivers/upload-document'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -253,7 +275,9 @@ export interface FileRouteTypes {
     | '/api/mobile/auth/logout'
     | '/api/mobile/auth/me'
     | '/api/mobile/auth/register'
+    | '/api/mobile/drivers/application'
     | '/api/mobile/drivers/apply'
+    | '/api/mobile/drivers/upload-document'
   id:
     | '__root__'
     | '/'
@@ -276,7 +300,9 @@ export interface FileRouteTypes {
     | '/api/mobile/auth/logout'
     | '/api/mobile/auth/me'
     | '/api/mobile/auth/register'
+    | '/api/mobile/drivers/application'
     | '/api/mobile/drivers/apply'
+    | '/api/mobile/drivers/upload-document'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -300,7 +326,9 @@ export interface RootRouteChildren {
   ApiMobileAuthLogoutRoute: typeof ApiMobileAuthLogoutRoute
   ApiMobileAuthMeRoute: typeof ApiMobileAuthMeRoute
   ApiMobileAuthRegisterRoute: typeof ApiMobileAuthRegisterRoute
+  ApiMobileDriversApplicationRoute: typeof ApiMobileDriversApplicationRoute
   ApiMobileDriversApplyRoute: typeof ApiMobileDriversApplyRoute
+  ApiMobileDriversUploadDocumentRoute: typeof ApiMobileDriversUploadDocumentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -445,11 +473,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobileAuthRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/drivers/application': {
+      id: '/api/mobile/drivers/application'
+      path: '/api/mobile/drivers/application'
+      fullPath: '/api/mobile/drivers/application'
+      preLoaderRoute: typeof ApiMobileDriversApplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mobile/drivers/apply': {
       id: '/api/mobile/drivers/apply'
       path: '/api/mobile/drivers/apply'
       fullPath: '/api/mobile/drivers/apply'
       preLoaderRoute: typeof ApiMobileDriversApplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/drivers/upload-document': {
+      id: '/api/mobile/drivers/upload-document'
+      path: '/api/mobile/drivers/upload-document'
+      fullPath: '/api/mobile/drivers/upload-document'
+      preLoaderRoute: typeof ApiMobileDriversUploadDocumentRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -476,7 +518,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMobileAuthLogoutRoute: ApiMobileAuthLogoutRoute,
   ApiMobileAuthMeRoute: ApiMobileAuthMeRoute,
   ApiMobileAuthRegisterRoute: ApiMobileAuthRegisterRoute,
+  ApiMobileDriversApplicationRoute: ApiMobileDriversApplicationRoute,
   ApiMobileDriversApplyRoute: ApiMobileDriversApplyRoute,
+  ApiMobileDriversUploadDocumentRoute: ApiMobileDriversUploadDocumentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

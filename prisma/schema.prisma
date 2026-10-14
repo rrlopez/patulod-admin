@@ -183,5 +183,26 @@ model DriverApplication {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  // Relations
+  documents         DriverDocument[]
+
   @@map("driver_applications")
+}
+
+// Driver Document Upload (Phase 5)
+model DriverDocument {
+  id                  String    @id @default(cuid())
+  driverApplicationId String
+  documentType        String    // DRIVERS_LICENSE_FRONT, DRIVERS_LICENSE_BACK, VEHICLE_OR_CR, GOVERNMENT_ID, VEHICLE_PHOTO_FRONT, VEHICLE_PHOTO_SIDE, VEHICLE_PHOTO_PLATE
+  storageUrl          String
+  uploadedAt          DateTime  @default(now())
+  reviewStatus        String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason     String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  application         DriverApplication @relation(fields: [driverApplicationId], references: [id], onDelete: Cascade)
+
+  @@map("driver_documents")
 }
