@@ -328,15 +328,26 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
       }
     }
 
-    // For drivers, get their application status
+    // For drivers, get their application status and check document completion
     let driverApplicationStatus: string | undefined
+    let hasIncompleteDocuments = false
     if (patulodUser.role === 'DRIVER') {
       const application = await db.driverApplication.findFirst({
         where: { email: body.email.toLowerCase() },
         orderBy: { createdAt: 'desc' },
-        select: { status: true },
+        include: {
+          documents: {
+            select: { id: true },
+          },
+        },
       })
-      driverApplicationStatus = application?.status
+      
+      if (application) {
+        driverApplicationStatus = application.status
+        // Check if driver has uploaded all 7 required documents
+        const uploadedCount = application.documents.length
+        hasIncompleteDocuments = uploadedCount < 7
+      }
     }
 
     // Create audit log
@@ -363,6 +374,7 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
         phone: patulodUser.phone,
         role: patulodUser.role,
         driverApplicationStatus, // Include application status for drivers
+        hasIncompleteDocuments, // Flag if documents not fully uploaded
       },
       session: {
         token,

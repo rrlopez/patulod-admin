@@ -96,6 +96,10 @@ const SENSITIVE_FIELDS = new Set([
 /** Recursively remove sensitive fields from any result value */
 function stripSensitiveFields(value: unknown): unknown {
   if (value === null || value === undefined) return value
+  
+  // Preserve Date objects - don't recurse into them
+  if (value instanceof Date) return value
+  
   if (Array.isArray(value)) return value.map(stripSensitiveFields)
   if (typeof value === 'object') {
     const cleaned: Record<string, unknown> = {}
