@@ -14,6 +14,8 @@ type PrismaOperation =
   | 'upsert'
   | 'aggregate'
   | 'groupBy'
+  | 'updateMany'
+  | 'deleteMany'
 
 interface PrismaQueryOptions {
   model: string

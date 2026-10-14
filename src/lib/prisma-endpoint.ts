@@ -73,6 +73,8 @@ const ALLOWED_OPERATIONS = [
   'upsert',
   'aggregate',
   'groupBy',
+  'updateMany',
+  'deleteMany',
 ] as const
 type AllowedOperation = (typeof ALLOWED_OPERATIONS)[number]
 
