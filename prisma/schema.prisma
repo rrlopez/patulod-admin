@@ -83,3 +83,83 @@ model Admin {
 
   @@map("admins")
 }
+
+// PATULOD User table (Passengers and Drivers) - linked to Better Auth user table
+model PatulodUser {
+  id                      String    @id @default(cuid())
+  fullName                String
+  phone                   String    @unique
+  userId                  String    @unique  // Links to Better Auth user.id
+  role                    String    // PASSENGER or DRIVER (assigned server-side only)
+  isActive                Boolean   @default(true)
+  isSuspended             Boolean   @default(false)
+  suspendedReason         String?
+  termsAcceptedAt         DateTime?
+  privacyAcknowledgedAt   DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  // Relations
+  termsAcceptances        TermsAcceptance[]
+  privacyAcknowledgments  PrivacyAcknowledgment[]
+  auditLogs               AuditLog[]
+
+  @@map("patulod_users")
+}
+
+// Terms Acceptance tracking
+model TermsAcceptance {
+  id            String        @id @default(cuid())
+  userId        String
+  termsVersion  String        // e.g., "1.0", "2.0"
+  acceptedAt    DateTime      @default(now())
+
+  user          PatulodUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("terms_acceptances")
+}
+
+// Privacy Notice Acknowledgment tracking
+model PrivacyAcknowledgment {
+  id              String        @id @default(cuid())
+  userId          String
+  noticeVersion   String        // e.g., "1.0", "2.0"
+  acknowledgedAt  DateTime      @default(now())
+
+  user            PatulodUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("privacy_acknowledgments")
+}
+
+// Audit Log for user actions
+model AuditLog {
+  id          String        @id @default(cuid())
+  userId      String?
+  entity      String        // e.g., "User", "Booking", "Trip"
+  action      String        // e.g., "CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT"
+  actorId     String?       // ID of the user who performed the action
+  actorRole   String?       // PASSENGER, DRIVER, or ADMIN
+  metadata    Json?         // Additional context (never includes plaintext passwords)
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime      @default(now())
+
+  user        PatulodUser?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+// Policy Content (Terms, Privacy Notice, Safety Guidelines)
+model PolicyContent {
+  id              String    @id @default(cuid())
+  type            String    // TERMS, PRIVACY, SAFETY
+  version         String    // e.g., "1.0", "2.0"
+  content         String    @db.Text
+  effectiveDate   DateTime
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([type, version])
+  @@map("policy_contents")
+}

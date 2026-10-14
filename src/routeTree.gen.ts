@@ -24,6 +24,10 @@ import { Route as SupportCaseIdRouteImport } from './routes/support.$caseId'
 import { Route as UsersIndexRouteImport } from './routes/users.index'
 import { Route as UsersUserIdRouteImport } from './routes/users.$userId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiMobileAuthLoginRouteImport } from './routes/api/mobile/auth/login'
+import { Route as ApiMobileAuthLogoutRouteImport } from './routes/api/mobile/auth/logout'
+import { Route as ApiMobileAuthMeRouteImport } from './routes/api/mobile/auth/me'
+import { Route as ApiMobileAuthRegisterRouteImport } from './routes/api/mobile/auth/register'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +104,26 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileAuthLoginRoute = ApiMobileAuthLoginRouteImport.update({
+  id: '/api/mobile/auth/login',
+  path: '/api/mobile/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileAuthLogoutRoute = ApiMobileAuthLogoutRouteImport.update({
+  id: '/api/mobile/auth/logout',
+  path: '/api/mobile/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileAuthMeRoute = ApiMobileAuthMeRouteImport.update({
+  id: '/api/mobile/auth/me',
+  path: '/api/mobile/auth/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileAuthRegisterRoute = ApiMobileAuthRegisterRouteImport.update({
+  id: '/api/mobile/auth/register',
+  path: '/api/mobile/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +141,10 @@ export interface FileRoutesByFullPath {
   '/support/': typeof SupportIndexRoute
   '/users/': typeof UsersIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/mobile/auth/login': typeof ApiMobileAuthLoginRoute
+  '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
+  '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
+  '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +162,10 @@ export interface FileRoutesByTo {
   '/support': typeof SupportIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/mobile/auth/login': typeof ApiMobileAuthLoginRoute
+  '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
+  '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
+  '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +184,10 @@ export interface FileRoutesById {
   '/support/': typeof SupportIndexRoute
   '/users/': typeof UsersIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/mobile/auth/login': typeof ApiMobileAuthLoginRoute
+  '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
+  '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
+  '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +207,10 @@ export interface FileRouteTypes {
     | '/support/'
     | '/users/'
     | '/api/auth/$'
+    | '/api/mobile/auth/login'
+    | '/api/mobile/auth/logout'
+    | '/api/mobile/auth/me'
+    | '/api/mobile/auth/register'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +228,10 @@ export interface FileRouteTypes {
     | '/support'
     | '/users'
     | '/api/auth/$'
+    | '/api/mobile/auth/login'
+    | '/api/mobile/auth/logout'
+    | '/api/mobile/auth/me'
+    | '/api/mobile/auth/register'
   id:
     | '__root__'
     | '/'
@@ -205,6 +249,10 @@ export interface FileRouteTypes {
     | '/support/'
     | '/users/'
     | '/api/auth/$'
+    | '/api/mobile/auth/login'
+    | '/api/mobile/auth/logout'
+    | '/api/mobile/auth/me'
+    | '/api/mobile/auth/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +271,10 @@ export interface RootRouteChildren {
   SupportIndexRoute: typeof SupportIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiMobileAuthLoginRoute: typeof ApiMobileAuthLoginRoute
+  ApiMobileAuthLogoutRoute: typeof ApiMobileAuthLogoutRoute
+  ApiMobileAuthMeRoute: typeof ApiMobileAuthMeRoute
+  ApiMobileAuthRegisterRoute: typeof ApiMobileAuthRegisterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,6 +384,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/auth/login': {
+      id: '/api/mobile/auth/login'
+      path: '/api/mobile/auth/login'
+      fullPath: '/api/mobile/auth/login'
+      preLoaderRoute: typeof ApiMobileAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/auth/logout': {
+      id: '/api/mobile/auth/logout'
+      path: '/api/mobile/auth/logout'
+      fullPath: '/api/mobile/auth/logout'
+      preLoaderRoute: typeof ApiMobileAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/auth/me': {
+      id: '/api/mobile/auth/me'
+      path: '/api/mobile/auth/me'
+      fullPath: '/api/mobile/auth/me'
+      preLoaderRoute: typeof ApiMobileAuthMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/auth/register': {
+      id: '/api/mobile/auth/register'
+      path: '/api/mobile/auth/register'
+      fullPath: '/api/mobile/auth/register'
+      preLoaderRoute: typeof ApiMobileAuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -351,6 +431,10 @@ const rootRouteChildren: RootRouteChildren = {
   SupportIndexRoute: SupportIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiMobileAuthLoginRoute: ApiMobileAuthLoginRoute,
+  ApiMobileAuthLogoutRoute: ApiMobileAuthLogoutRoute,
+  ApiMobileAuthMeRoute: ApiMobileAuthMeRoute,
+  ApiMobileAuthRegisterRoute: ApiMobileAuthRegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
