@@ -24,6 +24,7 @@ async function main() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Origin': baseURL,
       },
       body: JSON.stringify({
         email,
