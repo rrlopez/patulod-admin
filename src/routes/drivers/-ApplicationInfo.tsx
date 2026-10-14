@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { prismaQuery } from '../../lib/prisma-client'
+import { formatDate } from '../../lib/date-format'
 
 export interface DriverApplication {
   id: string
@@ -71,16 +72,16 @@ export function ApplicationInfo({ applicationId }: { applicationId: string }) {
             <Field label="Phone"><span className="font-mono">{app.phone}</span></Field>
             <Field label="Email">{app.email}</Field>
             <Field label="Submitted">
-              {new Date(app.submittedAt).toLocaleDateString('en-US', {
-                month: 'long', day: 'numeric', year: 'numeric',
+              {formatDate(app.submittedAt, {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
               })}
             </Field>
             {app.reviewedAt && (
               <>
                 <Field label="Reviewed On">
-                  {new Date(app.reviewedAt).toLocaleDateString('en-US', {
-                    month: 'short', day: 'numeric', year: 'numeric',
-                  })}
+                  {formatDate(app.reviewedAt)}
                 </Field>
                 <Field label="Reviewed By">{app.reviewedBy ?? '—'}</Field>
               </>

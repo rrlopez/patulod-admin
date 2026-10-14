@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
+import { formatDate } from '../../lib/date-format'
 
-export type DriverStatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'DOCUMENTS_NEEDED' | 'SUSPENDED' | 'INACTIVE'
+export type DriverStatusFilter = 'ALL' | 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REJECTED' | 'DOCUMENTS_NEEDED' | 'SUSPENDED' | 'INACTIVE'
 
 export interface ApplicationRow {
   id: string
@@ -15,6 +16,7 @@ export interface ApplicationRow {
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING:          'badge-warning',
+  IN_PROGRESS:      'badge-info',
   APPROVED:         'badge-success',
   REJECTED:         'badge-error',
   DOCUMENTS_NEEDED: 'badge-info',
@@ -33,7 +35,7 @@ interface DriversTableProps {
   onPageChange: (p: number) => void
 }
 
-const STATUSES: DriverStatusFilter[] = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'DOCUMENTS_NEEDED', 'SUSPENDED', 'INACTIVE']
+const STATUSES: DriverStatusFilter[] = ['ALL', 'PENDING', 'IN_PROGRESS', 'APPROVED', 'REJECTED', 'DOCUMENTS_NEEDED', 'SUSPENDED', 'INACTIVE']
 
 export function DriversTable({
   rows,
@@ -103,9 +105,7 @@ export function DriversTable({
                         </span>
                       </td>
                       <td className="text-base-content/60">
-                        {new Date(app.submittedAt).toLocaleDateString('en-US', {
-                          month: 'short', day: 'numeric', year: 'numeric',
-                        })}
+                        {formatDate(app.submittedAt)}
                       </td>
                       <td>
                         <button

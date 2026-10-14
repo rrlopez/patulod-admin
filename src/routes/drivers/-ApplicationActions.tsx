@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useSession } from '../../lib/auth-client'
 import { prismaQuery } from '../../lib/prisma-client'
+import { formatDate } from '../../lib/date-format'
 import type { DriverApplication } from './-ApplicationInfo'
 
 const STATUS_BADGE: Record<string, string> = {
   PENDING:          'badge-warning',
+  IN_PROGRESS:      'badge-info',
   APPROVED:         'badge-success',
   REJECTED:         'badge-error',
   DOCUMENTS_NEEDED: 'badge-info',
@@ -33,6 +35,24 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
     staleTime: 30_000,
   })
 
+  // Check if all documents are approved
+  const { data: documents } = useQuery<Array<{ id: string; reviewStatus: string }>>({
+    queryKey: ['driver', applicationId, 'documents'],
+    queryFn: () =>
+      prismaQuery<Array<{ id: string; reviewStatus: string }>>({
+        model: 'driverDocument',
+        operation: 'findMany',
+        args: {
+          where: { driverApplicationId: applicationId },
+          select: { id: true, reviewStatus: true },
+        },
+      }),
+    staleTime: 30_000,
+  })
+
+  const allDocumentsApproved = documents?.every(doc => doc.reviewStatus === 'APPROVED') ?? false
+  const hasDocuments = (documents?.length ?? 0) > 0
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['driver', applicationId] })
     queryClient.invalidateQueries({ queryKey: ['drivers'] })
@@ -44,6 +64,19 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
   }
 
   const reviewerName = session?.user?.name ?? 'Admin'
+
+  const startReviewMutation = useMutation({
+    mutationFn: () =>
+      prismaQuery({
+        model: 'driverApplication',
+        operation: 'update',
+        args: {
+          where: { id: applicationId },
+          data: { status: 'IN_PROGRESS' },
+        },
+      }),
+    onSuccess: () => { invalidate(); flash('Review started.') },
+  })
 
   const approveMutation = useMutation({
     mutationFn: () =>
@@ -122,12 +155,14 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
   })
 
   const isPending =
+    startReviewMutation.isPending ||
     approveMutation.isPending ||
     rejectMutation.isPending ||
     suspendMutation.isPending ||
     reinstateMutation.isPending
 
   const hasError =
+    startReviewMutation.isError ||
     approveMutation.isError ||
     rejectMutation.isError ||
     suspendMutation.isError ||
@@ -154,13 +189,43 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
               {status === 'PENDING' && (
                 <>
                   <button
-                    className="btn btn-success btn-sm w-full"
+                    className="btn btn-info btn-sm w-full"
                     disabled={isPending}
+                    onClick={() => startReviewMutation.mutate()}
+                  >
+                    {startReviewMutation.isPending && <span className="loading loading-spinner loading-xs" />}
+                    ▶ Start Review
+                  </button>
+                  
+                  <div className="alert alert-info py-2 text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Click "Start Review" to begin reviewing documents</span>
+                  </div>
+                </>
+              )}
+
+              {status === 'IN_PROGRESS' && (
+                <>
+                  <button
+                    className="btn btn-success btn-sm w-full"
+                    disabled={isPending || !allDocumentsApproved}
                     onClick={() => approveMutation.mutate()}
                   >
                     {approveMutation.isPending && <span className="loading loading-spinner loading-xs" />}
                     ✓ Approve Application
                   </button>
+                  
+                  {!hasDocuments && (
+                    <div className="alert alert-info py-2 text-xs">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>No documents submitted yet</span>
+                    </div>
+                  )}
+                  
                   <button
                     className="btn btn-error btn-sm btn-outline w-full"
                     disabled={isPending}
@@ -233,19 +298,56 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-base-content/60">Submitted</span>
                   <span className="text-xs">
-                    {new Date(app.submittedAt).toLocaleDateString('en-US', {
-                      month: 'short', day: 'numeric', year: 'numeric',
-                    })}
+                    {formatDate(app.submittedAt)}
                   </span>
                 </div>
                 {app.reviewedAt && (
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-base-content/60">Reviewed</span>
                     <span className="text-xs">
-                      {new Date(app.reviewedAt).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric', year: 'numeric',
-                      })}
+                      {formatDate(app.reviewedAt)}
                     </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Document review summary */}
+        {hasDocuments && (
+          <div className="card bg-base-200 border border-base-300 shadow-sm">
+            <div className="card-body p-3">
+              <h2 className="font-bold text-primary mb-3">Document Review</h2>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-base-content/60">Total Documents</span>
+                  <span className="text-xs font-bold">{documents?.length ?? 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-base-content/60">Approved</span>
+                  <span className="text-xs font-bold text-success">
+                    {documents?.filter(d => d.reviewStatus === 'APPROVED').length ?? 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-base-content/60">Pending</span>
+                  <span className="text-xs font-bold text-warning">
+                    {documents?.filter(d => d.reviewStatus === 'PENDING').length ?? 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-base-content/60">Rejected</span>
+                  <span className="text-xs font-bold text-error">
+                    {documents?.filter(d => d.reviewStatus === 'REJECTED').length ?? 0}
+                  </span>
+                </div>
+                {allDocumentsApproved && (
+                  <div className="alert alert-success py-2 text-xs mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>All documents approved!</span>
                   </div>
                 )}
               </div>

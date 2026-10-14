@@ -27,6 +27,7 @@ enum AdminRole {
 
 enum DriverStatus {
   PENDING
+  IN_PROGRESS
   APPROVED
   REJECTED
   DOCUMENTS_NEEDED
@@ -164,7 +165,7 @@ model PatulodUser {
   fullName              String
   phone                 String    @unique
   userId                String    @unique  // Links to Better Auth user.id
-  role                  UserRole  // PASSENGER or DRIVER — assigned server-side only
+  role                  String    // PASSENGER or DRIVER — assigned server-side only
   isActive              Boolean   @default(true)
   isSuspended           Boolean   @default(false)
   suspendedReason       String?
@@ -192,7 +193,6 @@ model PatulodUser {
   earnings              Earnings[]       @relation("DriverEarnings")
 
   // Phase 5
-  driverApplication     DriverApplication?
   driverAvailability    DriverAvailability?
 
   @@map("patulod_users")
@@ -513,7 +513,6 @@ model NotificationLog {
 
 model DriverApplication {
   id               String       @id @default(cuid())
-  userId           String       @unique  // Links to PatulodUser.id
   fullName         String
   email            String
   phone            String
@@ -521,7 +520,7 @@ model DriverApplication {
   plateNumber      String
   vehicleModel     String
   vehicleColor     String
-  status           DriverStatus @default(PENDING)
+  status           String       @default("PENDING")  // PENDING, IN_PROGRESS, APPROVED, REJECTED, DOCUMENTS_NEEDED, SUSPENDED, INACTIVE
   submittedAt      DateTime     @default(now())
   reviewedAt       DateTime?
   reviewedBy       String?      // Admin.id who reviewed
@@ -531,7 +530,6 @@ model DriverApplication {
   updatedAt        DateTime     @updatedAt
 
   // Relations
-  user             PatulodUser        @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents        DriverDocument[]
 
   @@map("driver_applications")
@@ -539,17 +537,22 @@ model DriverApplication {
 
 
 model DriverDocument {
-  id            String    @id @default(cuid())
-  applicationId String
-  type          String    // e.g. DRIVERS_LICENSE, OR_CR, NBI_CLEARANCE, SELFIE
-  storageUrl    String    // Supabase Storage path — not public
-  uploadedAt    DateTime  @default(now())
-  reviewStatus  String    @default("PENDING")  // PENDING, APPROVED, REJECTED
-  expiryDate    DateTime?
+  id                    String    @id @default(cuid())
+  driverApplicationId   String
+  documentType          String    // e.g. DRIVERS_LICENSE, OR_CR, NBI_CLEARANCE, SELFIE
+  fileData              String    @db.Text // base64-encoded file content
+  fileName              String
+  mimeType              String
+  fileSize              Int       // in bytes
+  uploadedAt            DateTime  @default(now())
+  reviewStatus          String    @default("PENDING")  // PENDING, APPROVED, REJECTED
+  rejectionReason       String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  application   DriverApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application   DriverApplication @relation(fields: [driverApplicationId], references: [id], onDelete: Cascade)
 
-  @@index([applicationId])
+  @@index([driverApplicationId])
   @@map("driver_documents")
 }
 
