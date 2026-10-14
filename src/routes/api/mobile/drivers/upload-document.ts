@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { db } from '#/db'
-import { uploadFile } from '#/lib/storage'
 
 interface UploadDocumentResponse {
   success: boolean
@@ -20,7 +19,7 @@ const VALID_DOCUMENT_TYPES = [
 ]
 
 const VALID_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf']
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB limit for database storage
 
 export const Route = createFileRoute('/api/mobile/drivers/upload-document')({
   server: {
@@ -135,7 +134,7 @@ export const Route = createFileRoute('/api/mobile/drivers/upload-document')({
             return new Response(
               JSON.stringify({
                 success: false,
-                error: 'File size exceeds 10MB limit',
+                error: 'File size exceeds 5MB limit',
               } as UploadDocumentResponse),
               {
                 status: 400,
@@ -176,19 +175,11 @@ export const Route = createFileRoute('/api/mobile/drivers/upload-document')({
             )
           }
 
-          // Read file as Buffer
+          // Read file as Buffer and convert to base64
           const buffer = Buffer.from(await file.arrayBuffer())
+          const base64Data = buffer.toString('base64')
 
-          // Upload file to storage
-          const uploadedUrl = await uploadFile(
-            buffer,
-            file.name,
-            file.type,
-            applicationId,
-            documentType,
-          )
-
-          // Upsert DriverDocument record
+          // Upsert DriverDocument record with base64 data
           const existingDocument = await db.driverDocument.findFirst({
             where: {
               driverApplicationId: applicationId,
@@ -202,7 +193,10 @@ export const Route = createFileRoute('/api/mobile/drivers/upload-document')({
             document = await db.driverDocument.update({
               where: { id: existingDocument.id },
               data: {
-                storageUrl: uploadedUrl,
+                fileData: base64Data,
+                fileName: file.name,
+                mimeType: file.type,
+                fileSize: file.size,
                 uploadedAt: new Date(),
                 reviewStatus: 'PENDING', // Reset review status on re-upload
                 rejectionReason: null,
@@ -214,7 +208,10 @@ export const Route = createFileRoute('/api/mobile/drivers/upload-document')({
               data: {
                 driverApplicationId: applicationId,
                 documentType: documentType,
-                storageUrl: uploadedUrl,
+                fileData: base64Data,
+                fileName: file.name,
+                mimeType: file.type,
+                fileSize: file.size,
                 reviewStatus: 'PENDING',
               },
             })
@@ -243,13 +240,17 @@ export const Route = createFileRoute('/api/mobile/drivers/upload-document')({
             documentType,
             applicationId,
             uploadedBy: patulodUser.fullName,
+            fileSize: file.size,
           })
+
+          // Return data URL for preview (base64)
+          const dataUrl = `data:${document.mimeType};base64,${document.fileData}`
 
           return new Response(
             JSON.stringify({
               success: true,
               documentId: document.id,
-              uploadedUrl: uploadedUrl,
+              uploadedUrl: dataUrl, // Return base64 data URL for preview
             } as UploadDocumentResponse),
             {
               status: 201,

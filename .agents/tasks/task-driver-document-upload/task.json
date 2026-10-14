@@ -1,0 +1,7 @@
+{
+  "task_id": "task-driver-document-upload",
+  "task_description": "Implement full driver document upload integration: extend Prisma schema with DriverDocument model, create backend API routes for file upload and application status retrieval with auth, add Supabase/local file storage, install expo-image-picker, create reusable DocumentUploadField component, and build driver-docs screen with 7 document types",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

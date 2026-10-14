@@ -194,7 +194,10 @@ model DriverDocument {
   id                  String    @id @default(cuid())
   driverApplicationId String
   documentType        String    // DRIVERS_LICENSE_FRONT, DRIVERS_LICENSE_BACK, VEHICLE_OR_CR, GOVERNMENT_ID, VEHICLE_PHOTO_FRONT, VEHICLE_PHOTO_SIDE, VEHICLE_PHOTO_PLATE
-  storageUrl          String
+  fileData            String    @db.Text // Base64 encoded file data
+  fileName            String    // Original filename
+  mimeType            String    // image/jpeg, image/png, application/pdf
+  fileSize            Int       // File size in bytes
   uploadedAt          DateTime  @default(now())
   reviewStatus        String    @default("PENDING") // PENDING, APPROVED, REJECTED
   rejectionReason     String?

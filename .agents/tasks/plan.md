@@ -1,204 +1,357 @@
-# Implementation Plan: Fix Mobile Passenger Registration Bug
+# Implementation Plan: Driver Document Upload Integration
 
-## Root Cause
-The `auth.api.signUpEmail()` and `auth.api.signInEmail()` calls in `mobile-auth.ts` are being invoked server-side without proper configuration to return session tokens suitable for mobile bearer authentication. Better Auth v1.7.7 by default returns cookie-based sessions, but the mobile app expects `session: { token: string, expiresAt: string }` where `token` is a bearer token. The current code passes the entire Better Auth session object directly, which does not contain a `token` field in the expected format.
+This plan implements full driver document upload capability across backend and mobile apps.
 
-When the button appears to hang indefinitely, it's likely because:
-1. The server returns HTTP 500 (due to the session structure mismatch or an auth error)
-2. The mobile app's `apiRequest` throws on non-OK responses
-3. The error may not surface properly, causing the UI to wait for the 30-second timeout
+## Overview
+- **Backend:** Extend Prisma schema, create file storage layer (Supabase + local fallback), add API routes for upload and status retrieval
+- **Mobile:** Install expo-image-picker, create reusable DocumentUploadField component, integrate into driver-docs screen
+- **Features:** 3 major features (FEAT-001, FEAT-002, FEAT-003) decomposed for sequential implementation
 
-## Solution Approach
-Extract the bearer token from Better Auth's session table after successful signup/login. Better Auth stores a `token` field in the `session` table (confirmed in `schema.prisma`) which is the bearer token string. Use `returnHeaders: true` option (available in v1.7.7) to get the full response, then query the session table to retrieve the token.
+## Context
+- Monorepo with TanStack Start backend and Expo SDK 57 mobile app
+- Backend: PostgreSQL via Prisma, Better Auth for sessions, token-based mobile auth
+- Mobile: expo-router, panelui-native UI, lucide-react-native icons, expo-secure-store
+- No Supabase env vars currently configured - storage must have local fallback
+- expo-image-picker NOT in package.json - must be installed
 
 ---
 
-## Implementation Steps
+## FEAT-001: Backend Database Schema, Storage, and API Routes
 
-- [ ] 1. **Fix `registerPassenger` to return bearer token**
-      
-      **What to do:**
-      Modify `registerPassenger` in `src/lib/mobile-auth.ts` to:
-      - Call `auth.api.signUpEmail()` with `returnHeaders: true` to ensure we get the complete response
-      - After successful signup, query the `session` table to get the bearer token: `await db.session.findFirst({ where: { userId: signUpResult.user.id }, orderBy: { createdAt: 'desc' }, select: { token: true, expiresAt: true } })`
-      - Wrap the PatulodUser creation, terms/privacy records, and audit log creation in a `db.$transaction()` to ensure atomicity
-      - Return `session: { token: sessionData.token, expiresAt: sessionData.expiresAt.toISOString() }` in the `AuthResponse`
-      - Add detailed error logging with `console.error('❌ Session token retrieval failed:', error)` for session query failures
-      
-      **Rationale:**
-      Better Auth v1.7.7 does not support `asResponse: false` to get plain objects with tokens. The `returnHeaders: true` option is documented in the API docs and ensures we get the full response. The session table's `token` column contains the bearer token that mobile apps need. Querying it directly after signup is the most reliable approach.
-      
-      **Files:**
-      - `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\lib\mobile-auth.ts`
-      
-      **Verify:**
-      Add a console.log before returning the response to show the session structure: `console.log('✅ Session token:', { hasToken: !!sessionData?.token, expiresAt: sessionData?.expiresAt })`. Check that the returned object has `session.token` as a string and `session.expiresAt` as an ISO date string.
+### Steps
 
-- [ ] 2. **Fix `loginPassenger` to return bearer token**
+- [ ] 1. **Extend Prisma schema with DriverDocument model**
       
-      **What to do:**
-      Apply the same fix to `loginPassenger`:
-      - Call `auth.api.signInEmail()` with `returnHeaders: true`
-      - After successful login, query the session table: `await db.session.findFirst({ where: { userId: signInResult.user.id }, orderBy: { createdAt: 'desc' }, select: { token: true, expiresAt: true } })`
-      - Return `session: { token: sessionData.token, expiresAt: sessionData.expiresAt.toISOString() }` in the `AuthResponse`
-      - Add error logging for session query failures
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\prisma\schema.prisma`
       
-      **Files:**
-      - `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\lib\mobile-auth.ts`
+      Add DriverDocument model with fields:
+      - `id` (String, @id, @default(cuid()))
+      - `driverApplicationId` (String)
+      - `documentType` (String) - values: DRIVERS_LICENSE_FRONT, DRIVERS_LICENSE_BACK, VEHICLE_OR_CR, GOVERNMENT_ID, VEHICLE_PHOTO_FRONT, VEHICLE_PHOTO_SIDE, VEHICLE_PHOTO_PLATE
+      - `storageUrl` (String)
+      - `uploadedAt` (DateTime, @default(now()))
+      - `reviewStatus` (String, @default("PENDING")) - values: PENDING, APPROVED, REJECTED
+      - `rejectionReason` (String?)
+      - `createdAt` (DateTime, @default(now()))
+      - `updatedAt` (DateTime, @updatedAt)
       
-      **Verify:**
-      Add a console.log showing `{ hasToken: !!sessionData?.token, expiresAt: sessionData?.expiresAt }` before returning. Confirm the session structure matches the mobile app's expectations.
-
-- [ ] 3. **Add error handling for missing session tokens**
+      Add relation to DriverApplication model:
+      ```prisma
+      model DriverApplication {
+        // ... existing fields
+        documents DriverDocument[]
+      }
       
-      **What to do:**
-      In both `registerPassenger` and `loginPassenger`, after querying the session table:
-      - Check if `sessionData` is null or `sessionData.token` is missing
-      - If missing, log the error: `console.error('❌ Session token not found for user:', signUpResult.user.id)`
-      - Return `{ success: false, error: 'Authentication failed. Please try again.' }` instead of proceeding
-      
-      **Rationale:**
-      If Better Auth fails to create a session (database error, configuration issue), we should not return success with an invalid session object. This prevents the mobile app from thinking registration succeeded when it actually failed.
-      
-      **Files:**
-      - `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\lib\mobile-auth.ts`
-      
-      **Verify:**
-      The code compiles without TypeScript errors. Review the error handling logic to ensure all failure paths return descriptive error messages.
-
-- [ ] 4. **Wrap `registerPassenger` DB operations in a transaction**
-      
-      **What to do:**
-      Wrap the PatulodUser creation, terms acceptance, privacy acknowledgment, and audit log creation in `db.$transaction(async (tx) => { ... })`:
-      ```typescript
-      await db.$transaction(async (tx) => {
-        const patulodUser = await tx.patulodUser.create({ ... });
-        await tx.termsAcceptance.create({ ... });
-        await tx.privacyAcknowledgment.create({ ... });
-        await tx.auditLog.create({ ... });
-      });
-      ```
-      
-      **Rationale:**
-      If any of the DB operations fail after Better Auth creates the user, we currently leave an orphaned user account with no PatulodUser record. A transaction ensures either all operations succeed or none do. Note: the Better Auth `signUpEmail` call happens BEFORE the transaction because it's not part of our Prisma client's transaction scope.
-      
-      **Files:**
-      - `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\lib\mobile-auth.ts`
-      
-      **Verify:**
-      Run `cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin && npm run build` to ensure TypeScript compiles successfully. Check that there are no TypeScript errors about the transaction scope.
-
-- [ ] 5. **Update `AuthResponse` interface type annotations**
-      
-      **What to do:**
-      Update the `AuthResponse` interface in `src/lib/mobile-auth.ts` to explicitly type the session field:
-      ```typescript
-      export interface AuthResponse {
-        success: boolean
-        user?: {
-          id: string
-          fullName: string
-          email: string
-          phone?: string
-          role: string
-        }
-        session?: {
-          token: string
-          expiresAt: string
-        }
-        error?: string
-        errors?: Record<string, string>
-        reason?: string
+      model DriverDocument {
+        // fields above
+        driverApplication DriverApplication @relation(fields: [driverApplicationId], references: [id], onDelete: Cascade)
+        
+        @@map("driver_documents")
       }
       ```
       
-      **Rationale:**
-      The current `session?: any` type is too permissive and hides the bug. Explicitly typing it as `{ token: string, expiresAt: string }` provides type safety and documentation.
-      
-      **Files:**
-      - `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\lib\mobile-auth.ts`
-      
-      **Verify:**
-      Run `cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin && npm run build`. TypeScript should show errors if any code returns an incorrectly shaped session object.
+      Verify: Schema is syntactically correct
 
-- [ ] 6. **Test the fix with manual verification**
+- [ ] 2. **Apply schema changes and regenerate Prisma client**
       
-      **What to do:**
-      Start the dev server and test the registration flow:
-      1. Run `cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin && npm run dev`
-      2. Use a tool like curl or Postman to POST to `http://localhost:3000/api/mobile/auth/register` with valid registration data
-      3. Check the server console logs for the `✅ Session token:` log showing `hasToken: true`
-      4. Verify the response JSON contains `session.token` as a non-empty string and `session.expiresAt` as an ISO date string
-      5. Repeat for `/api/mobile/auth/login`
+      Commands:
+      ```powershell
+      cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin
+      pnpm db:push
+      pnpm db:generate
+      ```
       
-      **Files:**
-      - None (manual testing)
+      Verify: Commands complete successfully, `prisma/generated/client/` contains DriverDocument types
+
+- [ ] 3. **Create file storage helper with Supabase + local fallback**
       
-      **Verify:**
-      The registration endpoint returns HTTP 200 with `{ success: true, session: { token: "...", expiresAt: "..." } }`. The token should be a long random string, not undefined or null. The button loading state should resolve (no longer hang indefinitely).
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\lib\storage.ts`
+      
+      Implementation:
+      - Check for `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` in process.env
+      - If present: implement `uploadToSupabase(fileBuffer: Buffer, filename: string, mimeType: string): Promise<string>` using @supabase/supabase-js (install if needed)
+      - If missing: implement local fallback that creates `.uploads/` directory, saves file with unique name, returns local path, logs warning
+      - Export `uploadFile(fileBuffer: Buffer, filename: string, mimeType: string, applicationId: string, documentType: string): Promise<string>`
+      
+      Decision: Since SUPABASE env vars are NOT in .env.local, local fallback will be used initially. Supabase can be configured later by adding env vars.
+      
+      Verify: File compiles without TypeScript errors
+
+- [ ] 4. **Create upload-document API route**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\routes\api\mobile\drivers\upload-document.ts`
+      
+      Implementation:
+      - Method: POST
+      - Parse multipart: `const formData = await request.formData()`
+      - Extract fields: `file` (File), `applicationId` (string), `documentType` (string)
+      - Auth: Extract token from `Authorization: Bearer <token>` header, query `db.session.findUnique({ where: { token }, include: { user: true } })`, return 401 if not found, lookup PatulodUser by userId, verify role is DRIVER
+      - Validate: file exists, size <= 10MB (from file.size), mimeType in [image/jpeg, image/png, application/pdf], applicationId exists in DriverApplication, documentType is one of 7 valid values
+      - Read file: `const buffer = Buffer.from(await file.arrayBuffer())`
+      - Upload: call `uploadFile(buffer, file.name, file.type, applicationId, documentType)`
+      - Upsert DriverDocument: `db.driverDocument.findFirst({ where: { driverApplicationId: applicationId, documentType } })`, if exists update, else create
+      - Response: 201 `{ success: true, documentId: string, uploadedUrl: string }`
+      - Errors: 400 for validation, 401 for auth, 500 for server errors (follow apply.ts patterns)
+      
+      Auth pattern follows existing mobile-auth.ts: Bearer token lookup in session table, verify user and role.
+      
+      Verify: Route compiles, TypeScript types correct
+
+- [ ] 5. **Create application status API route**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin\src\routes\api\mobile\drivers\application.ts`
+      
+      Implementation:
+      - Method: GET
+      - Auth: Extract Bearer token, query db.session with user include, verify user is DRIVER
+      - Find DriverApplication by email (from PatulodUser linked to session user)
+      - Include related DriverDocuments: `include: { documents: { select: { documentType: true, reviewStatus: true, uploadedAt: true } } }`
+      - Response: 200 `{ success: true, application: { id, status, submittedAt, documents: [...] } }`
+      - Errors: 401 if not authenticated, 404 if no application found
+      
+      Verify: Route compiles, returns correct structure
+
+### Verification
+```powershell
+cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-admin
+pnpm db:push
+pnpm db:generate
+# Should complete without errors
+```
+
+Manual API testing:
+- Test upload-document with curl/Postman: multipart request with valid token, verify 201 response
+- Test application route with valid token, verify 200 response with documents array
 
 ---
 
-## Code Changes Summary
+## FEAT-002: Mobile Image Picker, API Client, and DocumentUploadField Component
 
-### Key Changes in `mobile-auth.ts`:
+### Steps
 
-1. **Session token extraction pattern:**
-   ```typescript
-   const signUpResult = await auth.api.signUpEmail({
-     body: { email, password, name },
-     returnHeaders: true,
-   });
-   
-   // Query session table for bearer token
-   const sessionData = await db.session.findFirst({
-     where: { userId: signUpResult.user.id },
-     orderBy: { createdAt: 'desc' },
-     select: { token: true, expiresAt: true },
-   });
-   
-   if (!sessionData?.token) {
-     console.error('❌ Session token not found for user:', signUpResult.user.id);
-     return { success: false, error: 'Authentication failed. Please try again.' };
-   }
-   
-   console.log('✅ Session token:', { hasToken: !!sessionData.token, expiresAt: sessionData.expiresAt });
-   ```
+- [ ] 6. **Install expo-image-picker**
+      
+      Command:
+      ```powershell
+      cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile
+      npx expo install expo-image-picker
+      ```
+      
+      Verify: expo-image-picker appears in package.json dependencies
 
-2. **Transaction boundary:**
-   ```typescript
-   await db.$transaction(async (tx) => {
-     const patulodUser = await tx.patulodUser.create({ data: { ... } });
-     await tx.termsAcceptance.create({ data: { userId: patulodUser.id, ... } });
-     await tx.privacyAcknowledgment.create({ data: { userId: patulodUser.id, ... } });
-     await tx.auditLog.create({ data: { userId: patulodUser.id, ... } });
-   });
-   ```
+- [ ] 7. **Add TypeScript interfaces to API client**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile\lib\api.ts`
+      
+      Add interfaces:
+      ```typescript
+      export interface DriverDocumentData {
+        applicationId: string;
+        documentType: string;
+        fileUri: string;
+        fileName: string;
+        mimeType: string;
+      }
+      
+      export interface DriverDocumentResponse {
+        success: boolean;
+        documentId?: string;
+        uploadedUrl?: string;
+        error?: string;
+      }
+      
+      export interface DriverApplicationStatus {
+        success: boolean;
+        application?: {
+          id: string;
+          status: string;
+          documents: Array<{
+            documentType: string;
+            reviewStatus: string;
+            uploadedAt: string;
+          }>;
+        };
+        error?: string;
+      }
+      ```
+      
+      Verify: TypeScript compiles
 
-3. **Return statement:**
-   ```typescript
-   return {
-     success: true,
-     user: { ... },
-     session: {
-       token: sessionData.token,
-       expiresAt: sessionData.expiresAt.toISOString(),
-     },
-   };
-   ```
+- [ ] 8. **Add uploadDriverDocument method to API client**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile\lib\api.ts`
+      
+      Implementation:
+      ```typescript
+      uploadDriverDocument: async (data: DriverDocumentData): Promise<DriverDocumentResponse> => {
+        const formData = new FormData();
+        formData.append('file', {
+          uri: data.fileUri,
+          name: data.fileName,
+          type: data.mimeType,
+        } as any);
+        formData.append('applicationId', data.applicationId);
+        formData.append('documentType', data.documentType);
+        
+        const baseUrl = getBaseUrl();
+        const token = await getToken();
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+        
+        try {
+          const response = await fetch(`${baseUrl}/api/mobile/drivers/upload-document`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              // DO NOT set Content-Type - let fetch set multipart boundary
+            },
+            body: formData,
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Upload timed out. Please try again.');
+          }
+          throw error;
+        }
+      },
+      ```
+      
+      Key decision: DO NOT set Content-Type header - let fetch handle multipart boundary automatically.
+      
+      Verify: TypeScript compiles
 
-### Files Not Changing:
-- `src/routes/api/mobile/auth/register.ts` - route handler is correct
-- `src/routes/api/mobile/auth/login.ts` - route handler is correct  
-- `src/lib/auth.ts` - Better Auth config is correct (no need for bearer plugin since we're extracting tokens directly)
-- `patulod-mobile/lib/api.ts` - mobile app's `AuthResponse` interface and token handling is correct
+- [ ] 9. **Add getDriverApplication method to API client**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile\lib\api.ts`
+      
+      Implementation:
+      ```typescript
+      getDriverApplication: async (): Promise<DriverApplicationStatus> => {
+        return await apiRequest<DriverApplicationStatus>('/api/mobile/drivers/application', {
+          method: 'GET',
+        });
+      },
+      ```
+      
+      Verify: TypeScript compiles
 
-## Success Criteria
+- [ ] 10. **Create DocumentUploadField component**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile\components\DocumentUploadField.tsx`
+      
+      Implementation:
+      - Props interface as specified in task description
+      - Color constants: PRIMARY_GREEN = '#0d5f3a', ERROR_RED = '#dc2626', SUCCESS_GREEN = '#10b981'
+      - State: uploadState, errorMessage, uploadedFile
+      - Import expo-image-picker: `import * as ImagePicker from 'expo-image-picker'`
+      - Handle existing documents: check existingDocument prop, show approved/rejected badges
+      - UI states:
+        * idle: Upload button with Upload icon
+        * picking: Disabled with spinner
+        * uploading: Progress indicator with file name
+        * success: Thumbnail or file icon with green checkmark
+        * error: Red error message with retry button
+      - onPress handler:
+        1. Request permissions: `ImagePicker.requestMediaLibraryPermissionsAsync()`
+        2. Launch picker: `ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 1 })`
+        3. Validate file size: fetch uri to get blob, check size <= 10MB
+        4. Call api.uploadDriverDocument
+        5. On success: call onUploadComplete prop
+        6. On error: show error message
+      - Use lucide-react-native icons (Upload, CheckCircle2, AlertCircle, FileText, X, RefreshCw)
+      - Use panelui-native Button and Text components
+      - Accessibility: proper accessibilityLabel on touchables
+      
+      Design matches driver-apply.tsx patterns.
+      
+      Verify: TypeScript compiles, component renders all states correctly
 
-After implementing these changes:
-1. Mobile registration requests return HTTP 200 with `session.token` as a string
-2. The mobile app successfully saves the token and navigates to the next screen
-3. The button no longer hangs indefinitely
-4. Server logs show `✅ Session token: { hasToken: true, expiresAt: ... }` for successful auth
-5. All DB operations in registration are atomic (transaction ensures consistency)
-6. Login flow works identically to registration with token extraction
+### Verification
+```powershell
+cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile
+pnpm typecheck
+# Should pass with no errors
+```
+
+Visual testing: Render component in a test screen, verify all UI states display correctly
+
+---
+
+## FEAT-003: Driver Docs Screen Integration
+
+### Steps
+
+- [ ] 11. **Replace driver-docs.tsx with full integration**
+      
+      File: `c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile\app\driver-docs.tsx`
+      
+      Implementation:
+      - Remove mock UI, keep color constants
+      - Import DocumentUploadField, api, useLocalSearchParams
+      - State: `const params = useLocalSearchParams()`, `const applicationId = params.applicationId as string`
+      - State: `uploadedDocuments: Record<string, { documentId: string, url: string }>`, computed `uploadedCount = Object.keys(uploadedDocuments).length`
+      - State: `isSubmitting`, `submitError`
+      - Header: back button (ArrowLeft), title "Upload Documents", progress text (X/7), progress bar (green fill)
+      - Info section: yellow card with Info icon, title "Document Requirements", description about clear photos
+      - 7 DocumentUploadField instances:
+        1. Driver's License - Front (DRIVERS_LICENSE_FRONT, hint: 'Clear photo of front side')
+        2. Driver's License - Back (DRIVERS_LICENSE_BACK, hint: 'Clear photo of back side')
+        3. Vehicle OR/CR (VEHICLE_OR_CR, hint: 'Official Receipt or Certificate of Registration')
+        4. Valid Government ID (GOVERNMENT_ID, hint: 'Any valid government-issued ID')
+        5. Vehicle Photo - Front (VEHICLE_PHOTO_FRONT, hint: 'Clear front view of your vehicle')
+        6. Vehicle Photo - Side (VEHICLE_PHOTO_SIDE, hint: 'Clear side view of your vehicle')
+        7. Vehicle Photo - Plate (VEHICLE_PHOTO_PLATE, hint: 'Clear photo of your plate number')
+      - Each DocumentUploadField has applicationId prop, onUploadComplete callback that updates uploadedDocuments
+      - Submit button: disabled until uploadedCount === 7, text shows progress "Submit Documents (X/7)" or "Submit Application"
+      - onPress: navigate to /driver-status with router.push
+      - Error handling: if applicationId empty/undefined, show error with back button
+      - Design: ScrollView, SafeAreaView insets, KeyboardAvoidingView, match colors/icons/components from driver-apply.tsx
+      
+      Verify: TypeScript compiles
+
+### Verification
+```powershell
+cd c:\Users\ADMIN\Documents\workspace\active\patulod\patulod-mobile
+pnpm typecheck
+# Should pass with no errors
+```
+
+End-to-end testing:
+1. Complete driver-apply.tsx form
+2. Navigate to driver-docs.tsx, verify applicationId passed
+3. Upload all 7 documents, verify progress updates
+4. Verify submit button enables when all uploaded
+5. Tap submit, verify navigation to /driver-status
+
+---
+
+## Risk Assessment
+
+### Identified Risks
+1. **Supabase configuration:** Env vars not present, will use local fallback initially. May need to configure Supabase later.
+2. **expo-image-picker compatibility:** Verified compatible with Expo SDK 57 from official docs.
+3. **Bearer auth pattern:** No existing backend route uses Bearer token auth yet. We're establishing the pattern. Must ensure token extraction and validation is correct.
+4. **Multipart parsing:** TanStack Start should support request.formData() Web API. If not, may need alternative parsing library.
+5. **File size validation:** Must validate on both mobile (before upload) and backend (for security).
+
+### Mitigations
+- Local file storage fallback ensures feature works without Supabase
+- expo-image-picker is official Expo package, well-maintained
+- Bearer auth follows standard pattern, similar to existing session lookup
+- request.formData() is Web standard, supported by Nitro/H3
+- Double validation (client + server) for file size
+
+---
+
+## Notes
+- All commits should be made locally, NOT pushed
+- Prisma client regeneration required after schema changes
+- Mobile typecheck must pass before considering feature complete
+- Design system consistency: PRIMARY_GREEN #0d5f3a, lucide-react-native icons, panelui-native components
