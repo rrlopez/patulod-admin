@@ -1,11 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { parsePhoneNumber } from 'libphonenumber-js'
 import { db } from '#/db'
+import { auth } from '#/lib/auth'
 
 interface DriverApplicationRequest {
   fullName: string
   email: string
   phone: string
+  password: string
+  confirmPassword: string
   vehicleType: string
   plateNumber: string
   vehicleModel: string
@@ -15,6 +18,16 @@ interface DriverApplicationRequest {
 interface DriverApplicationResponse {
   success: boolean
   applicationId?: string
+  user?: {
+    id: string
+    fullName: string
+    email: string
+    role: string
+  }
+  session?: {
+    token: string
+    expiresAt: string
+  }
   error?: string
   errors?: Record<string, string>
 }
@@ -79,6 +92,17 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
             errors.phone = 'Invalid phone number format'
           }
 
+          // Validate password
+          if (!body.password || body.password.length < 8) {
+            errors.password = 'Password must be at least 8 characters'
+          }
+          if (body.password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/.test(body.password)) {
+            errors.password = 'Password must contain uppercase, lowercase, and number'
+          }
+          if (body.password !== body.confirmPassword) {
+            errors.confirmPassword = 'Passwords do not match'
+          }
+
           // Validate vehicle type
           if (!body.vehicleType || !['motorcycle', 'tricycle'].includes(body.vehicleType)) {
             errors.vehicleType = 'Please select a valid vehicle type'
@@ -120,6 +144,89 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
             })
           }
 
+          // Create Better Auth user with DRIVER role (PENDING status)
+          const signUpResult = await auth.api.signUpEmail({
+            body: {
+              email: body.email.toLowerCase(),
+              password: body.password,
+              name: body.fullName,
+            },
+            asResponse: false,
+          })
+
+          if (!signUpResult) {
+            console.error('Better Auth signUp returned null/undefined')
+            return new Response(
+              JSON.stringify({ success: false, error: 'Failed to create account' }),
+              {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
+          }
+
+          console.log('✅ Better Auth driver user created:', signUpResult.user.id)
+
+          // Extract session token
+          let token: string
+          let expiresAt: Date
+
+          if (signUpResult.token) {
+            token = signUpResult.token
+            
+            const sessionData = await db.session.findFirst({
+              where: { userId: signUpResult.user.id },
+              orderBy: { createdAt: 'desc' },
+              select: { expiresAt: true },
+            })
+            
+            if (!sessionData) {
+              console.error('❌ Session data not found for user:', signUpResult.user.id)
+              return new Response(
+                JSON.stringify({ success: false, error: 'Account created but session could not be established. Please log in.' }),
+                {
+                  status: 500,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+            
+            expiresAt = sessionData.expiresAt
+          } else {
+            const sessionData = await db.session.findFirst({
+              where: { userId: signUpResult.user.id },
+              orderBy: { createdAt: 'desc' },
+              select: { token: true, expiresAt: true },
+            })
+
+            if (!sessionData?.token) {
+              console.error('❌ Session token not found for user:', signUpResult.user.id)
+              return new Response(
+                JSON.stringify({ success: false, error: 'Account created but session could not be established. Please log in.' }),
+                {
+                  status: 500,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+
+            token = sessionData.token
+            expiresAt = sessionData.expiresAt
+          }
+
+          // Create PatulodUser record with DRIVER role
+          const patulodUser = await db.patulodUser.create({
+            data: {
+              fullName: body.fullName.trim(),
+              phone: normalizedPhone,
+              userId: signUpResult.user.id,
+              role: 'DRIVER', // Driver role, not Passenger
+              isActive: false, // Inactive until approved
+            },
+          })
+
+          console.log('✅ PatulodUser (DRIVER) created with ID:', patulodUser.id)
+
           // Create driver application
           const application = await db.driverApplication.create({
             data: {
@@ -136,10 +243,37 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
 
           console.log('✅ Driver application created:', application.id)
 
+          // Create audit log
+          await db.auditLog.create({
+            data: {
+              userId: patulodUser.id,
+              entity: 'DriverApplication',
+              action: 'APPLY',
+              actorId: patulodUser.id,
+              actorRole: 'DRIVER',
+              metadata: {
+                email: body.email,
+                phone: normalizedPhone,
+                vehicleType: body.vehicleType,
+                plateNumber: body.plateNumber,
+              },
+            },
+          })
+
           return new Response(
             JSON.stringify({
               success: true,
               applicationId: application.id,
+              user: {
+                id: signUpResult.user.id,
+                fullName: body.fullName,
+                email: signUpResult.user.email,
+                role: 'DRIVER',
+              },
+              session: {
+                token,
+                expiresAt: expiresAt.toISOString(),
+              },
             } as DriverApplicationResponse),
             {
               status: 201,
