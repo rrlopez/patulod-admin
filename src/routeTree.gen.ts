@@ -10,13 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FinancialsRouteImport } from './routes/financials'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PoliciesRouteImport } from './routes/policies'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ApiPrismaRouteImport } from './routes/api/prisma'
 import { Route as BookingsIndexRouteImport } from './routes/bookings.index'
 import { Route as BookingsBookingIdRouteImport } from './routes/bookings.$bookingId'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DriversIndexRouteImport } from './routes/drivers.index'
 import { Route as DriversApplicationIdRouteImport } from './routes/drivers.$applicationId'
 import { Route as SupportIndexRouteImport } from './routes/support.index'
@@ -36,11 +37,6 @@ import { Route as ApiMobileDriversUploadDocumentRouteImport } from './routes/api
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinancialsRoute = FinancialsRouteImport.update({
@@ -63,6 +59,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPrismaRoute = ApiPrismaRouteImport.update({
+  id: '/api/prisma',
+  path: '/api/prisma',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingsIndexRoute = BookingsIndexRouteImport.update({
   id: '/bookings/',
   path: '/bookings/',
@@ -71,6 +72,11 @@ const BookingsIndexRoute = BookingsIndexRouteImport.update({
 const BookingsBookingIdRoute = BookingsBookingIdRouteImport.update({
   id: '/bookings/$bookingId',
   path: '/bookings/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DriversIndexRoute = DriversIndexRouteImport.update({
@@ -153,16 +159,17 @@ const ApiMobileDriversUploadDocumentRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/financials': typeof FinancialsRoute
   '/login': typeof LoginRoute
   '/policies': typeof PoliciesRoute
   '/settings': typeof SettingsRoute
+  '/api/prisma': typeof ApiPrismaRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/drivers/$applicationId': typeof DriversApplicationIdRoute
   '/support/$caseId': typeof SupportCaseIdRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/bookings/': typeof BookingsIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/support/': typeof SupportIndexRoute
   '/users/': typeof UsersIndexRoute
@@ -178,16 +185,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/financials': typeof FinancialsRoute
   '/login': typeof LoginRoute
   '/policies': typeof PoliciesRoute
   '/settings': typeof SettingsRoute
+  '/api/prisma': typeof ApiPrismaRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/drivers/$applicationId': typeof DriversApplicationIdRoute
   '/support/$caseId': typeof SupportCaseIdRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/bookings': typeof BookingsIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/drivers': typeof DriversIndexRoute
   '/support': typeof SupportIndexRoute
   '/users': typeof UsersIndexRoute
@@ -204,16 +212,17 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/financials': typeof FinancialsRoute
   '/login': typeof LoginRoute
   '/policies': typeof PoliciesRoute
   '/settings': typeof SettingsRoute
+  '/api/prisma': typeof ApiPrismaRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/drivers/$applicationId': typeof DriversApplicationIdRoute
   '/support/$caseId': typeof SupportCaseIdRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/bookings/': typeof BookingsIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/support/': typeof SupportIndexRoute
   '/users/': typeof UsersIndexRoute
@@ -231,16 +240,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/financials'
     | '/login'
     | '/policies'
     | '/settings'
+    | '/api/prisma'
     | '/bookings/$bookingId'
     | '/drivers/$applicationId'
     | '/support/$caseId'
     | '/users/$userId'
     | '/bookings/'
+    | '/dashboard/'
     | '/drivers/'
     | '/support/'
     | '/users/'
@@ -256,16 +266,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
     | '/financials'
     | '/login'
     | '/policies'
     | '/settings'
+    | '/api/prisma'
     | '/bookings/$bookingId'
     | '/drivers/$applicationId'
     | '/support/$caseId'
     | '/users/$userId'
     | '/bookings'
+    | '/dashboard'
     | '/drivers'
     | '/support'
     | '/users'
@@ -281,16 +292,17 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
     | '/financials'
     | '/login'
     | '/policies'
     | '/settings'
+    | '/api/prisma'
     | '/bookings/$bookingId'
     | '/drivers/$applicationId'
     | '/support/$caseId'
     | '/users/$userId'
     | '/bookings/'
+    | '/dashboard/'
     | '/drivers/'
     | '/support/'
     | '/users/'
@@ -307,16 +319,17 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
   FinancialsRoute: typeof FinancialsRoute
   LoginRoute: typeof LoginRoute
   PoliciesRoute: typeof PoliciesRoute
   SettingsRoute: typeof SettingsRoute
+  ApiPrismaRoute: typeof ApiPrismaRoute
   BookingsBookingIdRoute: typeof BookingsBookingIdRoute
   DriversApplicationIdRoute: typeof DriversApplicationIdRoute
   SupportCaseIdRoute: typeof SupportCaseIdRoute
   UsersUserIdRoute: typeof UsersUserIdRoute
   BookingsIndexRoute: typeof BookingsIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   DriversIndexRoute: typeof DriversIndexRoute
   SupportIndexRoute: typeof SupportIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
@@ -338,13 +351,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financials': {
@@ -375,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/prisma': {
+      id: '/api/prisma'
+      path: '/api/prisma'
+      fullPath: '/api/prisma'
+      preLoaderRoute: typeof ApiPrismaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bookings/': {
       id: '/bookings/'
       path: '/bookings'
@@ -387,6 +400,13 @@ declare module '@tanstack/react-router' {
       path: '/bookings/$bookingId'
       fullPath: '/bookings/$bookingId'
       preLoaderRoute: typeof BookingsBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/drivers/': {
@@ -499,16 +519,17 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
   FinancialsRoute: FinancialsRoute,
   LoginRoute: LoginRoute,
   PoliciesRoute: PoliciesRoute,
   SettingsRoute: SettingsRoute,
+  ApiPrismaRoute: ApiPrismaRoute,
   BookingsBookingIdRoute: BookingsBookingIdRoute,
   DriversApplicationIdRoute: DriversApplicationIdRoute,
   SupportCaseIdRoute: SupportCaseIdRoute,
   UsersUserIdRoute: UsersUserIdRoute,
   BookingsIndexRoute: BookingsIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   DriversIndexRoute: DriversIndexRoute,
   SupportIndexRoute: SupportIndexRoute,
   UsersIndexRoute: UsersIndexRoute,

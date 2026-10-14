@@ -7,7 +7,74 @@ datasource db {
   provider = "postgresql"
 }
 
-// Better Auth tables
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  PASSENGER
+  DRIVER
+}
+
+enum AdminRole {
+  STAFF
+  MANAGER
+  SUPER_ADMIN
+  DRIVER_REVIEWER
+  SUPPORT_STAFF
+  FINANCE
+}
+
+enum DriverStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DOCUMENTS_NEEDED
+  SUSPENDED
+  INACTIVE
+}
+
+enum RideStatus {
+  SEARCHING
+  DRIVER_ASSIGNED
+  DRIVER_ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_DRIVER_FOUND
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  DISPUTED
+  ADJUSTED
+}
+
+enum SupportCaseType {
+  DISPUTE
+  REPORT
+  LOST_BELONGINGS
+  INCIDENT
+}
+
+enum SupportCaseStatus {
+  RECEIVED
+  UNDER_REVIEW
+  ACTION_TAKEN
+  CLOSED
+}
+
+enum PolicyType {
+  TERMS
+  PRIVACY
+  SAFETY
+}
+
+// ─────────────────────────────────────────────
+// Better Auth tables (managed by Better Auth — do not rename)
+// ─────────────────────────────────────────────
+
 model user {
   id            String    @id
   name          String
@@ -17,8 +84,8 @@ model user {
   createdAt     DateTime
   updatedAt     DateTime
 
-  sessions session[]
-  accounts account[]
+  sessions      session[]
+  accounts      account[]
 
   @@map("user")
 }
@@ -33,33 +100,33 @@ model session {
   userAgent String?
   userId    String
 
-  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("session")
 }
 
 model account {
-  id                String   @id
-  accountId         String
-  providerId        String
-  userId            String
-  accessToken       String?
-  refreshToken      String?
-  idToken           String?
-  accessTokenExpiresAt DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope             String?
-  password          String?
-  createdAt         DateTime
-  updatedAt         DateTime
+  id                       String    @id
+  accountId                String
+  providerId               String
+  userId                   String
+  accessToken              String?
+  refreshToken             String?
+  idToken                  String?
+  accessTokenExpiresAt     DateTime?
+  refreshTokenExpiresAt    DateTime?
+  scope                    String?
+  password                 String?
+  createdAt                DateTime
+  updatedAt                DateTime
 
-  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                     user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
 
 model verification {
-  id         String   @id
+  id         String    @id
   identifier String
   value      String
   expiresAt  DateTime
@@ -69,143 +136,433 @@ model verification {
   @@map("verification")
 }
 
-// PATULOD Admin table (separate from Better Auth user table)
+// ─────────────────────────────────────────────
+// Admin (separate from Better Auth user table)
+// ─────────────────────────────────────────────
+
 model Admin {
-  id          String    @id @default(cuid())
-  fullName    String
-  email       String    @unique
-  phone       String?
-  userId      String    @unique  // Links to Better Auth user.id
-  isActive    Boolean   @default(true)
-  role        String    @default("STAFF") // STAFF, MANAGER, SUPER_ADMIN
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String    @id @default(cuid())
+  fullName  String
+  email     String    @unique
+  phone     String?
+  userId    String    @unique  // Links to Better Auth user.id
+  isActive  Boolean   @default(true)
+  role      AdminRole @default(STAFF)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@map("admins")
 }
 
-// PATULOD User table (Passengers and Drivers) - linked to Better Auth user table
-model PatulodUser {
-  id                      String    @id @default(cuid())
-  fullName                String
-  phone                   String    @unique
-  userId                  String    @unique  // Links to Better Auth user.id
-  role                    String    // PASSENGER or DRIVER (assigned server-side only)
-  isActive                Boolean   @default(true)
-  isSuspended             Boolean   @default(false)
-  suspendedReason         String?
-  termsAcceptedAt         DateTime?
-  privacyAcknowledgedAt   DateTime?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+// ─────────────────────────────────────────────
+// Phase 1 — Auth & Profiles
+// ─────────────────────────────────────────────
 
-  // Relations
-  termsAcceptances        TermsAcceptance[]
-  privacyAcknowledgments  PrivacyAcknowledgment[]
-  auditLogs               AuditLog[]
+// App-level user table for Passengers and Drivers
+model PatulodUser {
+  id                    String    @id @default(cuid())
+  fullName              String
+  phone                 String    @unique
+  userId                String    @unique  // Links to Better Auth user.id
+  role                  UserRole  // PASSENGER or DRIVER — assigned server-side only
+  isActive              Boolean   @default(true)
+  isSuspended           Boolean   @default(false)
+  suspendedReason       String?
+  termsAcceptedAt       DateTime?
+  privacyAcknowledgedAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Phase 1
+  termsAcceptances      TermsAcceptance[]
+  privacyAcknowledgments PrivacyAcknowledgment[]
+  auditLogs             AuditLog[]
+
+  // Phase 2
+  bookingsAsPassenger   Booking[]        @relation("PassengerBookings")
+
+  // Phase 3
+  tripsAsPassenger      Trip[]           @relation("PassengerTrips")
+  tripsAsDriver         Trip[]           @relation("DriverTrips")
+
+  // Phase 4
+  supportCasesReported  SupportCase[]    @relation("ReportedCases")
+  supportCasesAssigned  SupportCase[]    @relation("AssignedCases")
+  notifications         Notification[]
+  earnings              Earnings[]       @relation("DriverEarnings")
+
+  // Phase 5
+  driverApplication     DriverApplication?
+  driverAvailability    DriverAvailability?
 
   @@map("patulod_users")
 }
 
-// Terms Acceptance tracking
 model TermsAcceptance {
-  id            String        @id @default(cuid())
-  userId        String
-  termsVersion  String        // e.g., "1.0", "2.0"
-  acceptedAt    DateTime      @default(now())
+  id           String      @id @default(cuid())
+  userId       String
+  termsVersion String
+  acceptedAt   DateTime    @default(now())
 
-  user          PatulodUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         PatulodUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("terms_acceptances")
 }
 
-// Privacy Notice Acknowledgment tracking
 model PrivacyAcknowledgment {
-  id              String        @id @default(cuid())
-  userId          String
-  noticeVersion   String        // e.g., "1.0", "2.0"
-  acknowledgedAt  DateTime      @default(now())
+  id             String      @id @default(cuid())
+  userId         String
+  noticeVersion  String
+  acknowledgedAt DateTime    @default(now())
 
-  user            PatulodUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           PatulodUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("privacy_acknowledgments")
 }
 
-// Audit Log for user actions
 model AuditLog {
-  id          String        @id @default(cuid())
-  userId      String?
-  entity      String        // e.g., "User", "Booking", "Trip"
-  action      String        // e.g., "CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT"
-  actorId     String?       // ID of the user who performed the action
-  actorRole   String?       // PASSENGER, DRIVER, or ADMIN
-  metadata    Json?         // Additional context (never includes plaintext passwords)
-  ipAddress   String?
-  userAgent   String?
-  timestamp   DateTime      @default(now())
+  id        String       @id @default(cuid())
+  userId    String?
+  entity    String       // e.g. "User", "Booking", "Trip"
+  action    String       // e.g. "CREATE", "UPDATE", "LOGIN", "LOGOUT"
+  actorId   String?      // ID of the user who performed the action
+  actorRole String?      // PASSENGER, DRIVER, or ADMIN
+  metadata  Json?        // Additional context — never includes plaintext passwords
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime     @default(now())
 
-  user        PatulodUser?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      PatulodUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
 }
 
-// Policy Content (Terms, Privacy Notice, Safety Guidelines)
 model PolicyContent {
-  id              String    @id @default(cuid())
-  type            String    // TERMS, PRIVACY, SAFETY
-  version         String    // e.g., "1.0", "2.0"
-  content         String    @db.Text
-  effectiveDate   DateTime
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String     @id @default(cuid())
+  type          PolicyType
+  version       String     // e.g. "1.0", "2.0"
+  content       String     @db.Text
+  effectiveDate DateTime
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@unique([type, version])
   @@map("policy_contents")
 }
 
-// Driver Application (Phase 5)
-model DriverApplication {
+// ─────────────────────────────────────────────
+// Phase 2 — Booking & Matching
+// ─────────────────────────────────────────────
+
+// Versioned fare configuration — each Booking records which config was active at time of booking
+model FareConfig {
   id                String    @id @default(cuid())
-  fullName          String
-  email             String
-  phone             String
-  vehicleType       String    // motorcycle, tricycle
-  plateNumber       String
-  vehicleModel      String
-  vehicleColor      String
-  status            String    @default("PENDING") // PENDING, APPROVED, REJECTED, DOCUMENTS_NEEDED
-  submittedAt       DateTime  @default(now())
-  reviewedAt        DateTime?
-  reviewedBy        String?   // Admin ID who reviewed
-  rejectionReason   String?
-  notes             String?   // Admin notes
+  version           String    @unique  // e.g. "1.0", "2.0"
+  baseFare          Decimal   @db.Decimal(10, 2)
+  perKmRate         Decimal   @db.Decimal(10, 2)
+  minimumFare       Decimal   @db.Decimal(10, 2)
+  platformCommission Decimal  @db.Decimal(5, 2)  // percentage, e.g. 20.00
+  isActive          Boolean   @default(true)
+  effectiveFrom     DateTime  @default(now())
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  // Relations
+  bookings          Booking[]
   documents         DriverDocument[]
 
-  @@map("driver_applications")
+  @@map("fare_configs")
 }
 
-// Driver Document Upload (Phase 5)
-model DriverDocument {
+// Service area boundary — GeoJSON polygon
+model ServiceArea {
+  id          String   @id @default(cuid())
+  name        String
+  boundary    Json     // GeoJSON polygon
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("service_areas")
+}
+
+model Booking {
+  id               String     @id @default(cuid())
+  reference        String     @unique  // Human-readable e.g. PTL-2026100901
+  passengerId      String
+  pickupAddress    String
+  destinationAddress String
+  pickupLat        Decimal?   @db.Decimal(10, 7)
+  pickupLng        Decimal?   @db.Decimal(10, 7)
+  destinationLat   Decimal?   @db.Decimal(10, 7)
+  destinationLng   Decimal?   @db.Decimal(10, 7)
+  serviceType      String     // e.g. motorcycle, tricycle
+  passengerCount   Int        @default(1)
+  fareEstimate     Decimal    @db.Decimal(10, 2)
+  fareType         String     // ESTIMATED or FIXED
+  fareConfigId     String?    // Which FareConfig was active at booking time
+  paymentMethod    String     @default("CASH")
+  status           RideStatus @default(SEARCHING)
+  idempotencyKey   String     @unique  // Network retry safety
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // Relations
+  passenger        PatulodUser    @relation("PassengerBookings", fields: [passengerId], references: [id])
+  fareConfig       FareConfig?    @relation(fields: [fareConfigId], references: [id])
+  events           BookingEvent[]
+  trip             Trip?
+  payment          Payment?
+
+  @@index([passengerId])
+  @@index([status])
+  @@map("bookings")
+}
+
+// Full state-transition audit trail for bookings
+model BookingEvent {
+  id         String     @id @default(cuid())
+  bookingId  String
+  fromStatus RideStatus?
+  toStatus   RideStatus
+  actorId    String?    // PatulodUser.id or Admin.id
+  actorRole  String?    // PASSENGER, DRIVER, ADMIN
+  reason     String?
+  timestamp  DateTime   @default(now())
+
+  booking    Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_events")
+}
+
+// ─────────────────────────────────────────────
+// Phase 3 — Trip Lifecycle
+// ─────────────────────────────────────────────
+
+model Trip {
   id                  String    @id @default(cuid())
-  driverApplicationId String
-  documentType        String    // DRIVERS_LICENSE_FRONT, DRIVERS_LICENSE_BACK, VEHICLE_OR_CR, GOVERNMENT_ID, VEHICLE_PHOTO_FRONT, VEHICLE_PHOTO_SIDE, VEHICLE_PHOTO_PLATE
-  fileData            String    @db.Text // Base64 encoded file data
-  fileName            String    // Original filename
-  mimeType            String    // image/jpeg, image/png, application/pdf
-  fileSize            Int       // File size in bytes
-  uploadedAt          DateTime  @default(now())
-  reviewStatus        String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  rejectionReason     String?
+  bookingId           String    @unique
+  driverId            String
+  passengerId         String
+  startedAt           DateTime?
+  completedAt         DateTime?
+  finalFare           Decimal?  @db.Decimal(10, 2)
+  fareAdjustmentReason String?
+  cancellationReason  String?
+  cancellationInitiator String? // PASSENGER or DRIVER
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
   // Relations
-  application         DriverApplication @relation(fields: [driverApplicationId], references: [id], onDelete: Cascade)
+  booking             Booking     @relation(fields: [bookingId], references: [id])
+  driver              PatulodUser @relation("DriverTrips", fields: [driverId], references: [id])
+  passenger           PatulodUser @relation("PassengerTrips", fields: [passengerId], references: [id])
+  events              TripEvent[]
+  earnings            Earnings?
 
+  @@index([driverId])
+  @@index([passengerId])
+  @@map("trips")
+}
+
+// Full state-transition audit trail for trips
+model TripEvent {
+  id        String     @id @default(cuid())
+  tripId    String
+  fromStatus RideStatus?
+  toStatus  RideStatus
+  actorId   String?    // PatulodUser.id or Admin.id
+  actorRole String?    // PASSENGER, DRIVER, ADMIN
+  reason    String?
+  timestamp DateTime   @default(now())
+
+  trip      Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@map("trip_events")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Payments, Earnings, Support, Notifications
+// ─────────────────────────────────────────────
+
+model Payment {
+  id                    String        @id @default(cuid())
+  bookingId             String        @unique
+  fareDue               Decimal       @db.Decimal(10, 2)
+  driverConfirmedAmount Decimal?      @db.Decimal(10, 2)
+  status                PaymentStatus @default(PENDING)
+  method                String        @default("CASH")
+  confirmedAt           DateTime?
+  disputeNote           String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  booking               Booking       @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+model Earnings {
+  id                 String    @id @default(cuid())
+  driverId           String
+  tripId             String    @unique
+  passengerFare      Decimal   @db.Decimal(10, 2)
+  driverEarnings     Decimal   @db.Decimal(10, 2)
+  platformCommission Decimal   @db.Decimal(10, 2)
+  adjustmentAmount   Decimal   @db.Decimal(10, 2) @default(0)
+  adjustmentReason   String?
+  settledAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  driver             PatulodUser         @relation("DriverEarnings", fields: [driverId], references: [id])
+  trip               Trip                @relation(fields: [tripId], references: [id])
+  adjustments        EarningsAdjustment[]
+
+  @@index([driverId])
+  @@map("earnings")
+}
+
+// Audit trail for earnings corrections — requires ADMIN/FINANCE authorization
+model EarningsAdjustment {
+  id             String   @id @default(cuid())
+  earningsId     String
+  adjustedBy     String   // Admin.id
+  reason         String
+  previousAmount Decimal  @db.Decimal(10, 2)
+  newAmount      Decimal  @db.Decimal(10, 2)
+  adjustedAt     DateTime @default(now())
+
+  earnings       Earnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
+
+  @@map("earnings_adjustments")
+}
+
+model SupportCase {
+  id              String            @id @default(cuid())
+  type            SupportCaseType
+  bookingId       String?
+  reporterId      String
+  assignedStaffId String?
+  status          SupportCaseStatus @default(RECEIVED)
+  description     String            @db.Text
+  category        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  reporter        PatulodUser       @relation("ReportedCases", fields: [reporterId], references: [id])
+  assignedStaff   PatulodUser?      @relation("AssignedCases", fields: [assignedStaffId], references: [id])
+  events          SupportCaseEvent[]
+
+  @@index([reporterId])
+  @@index([status])
+  @@map("support_cases")
+}
+
+// Status changes and staff notes
+model SupportCaseEvent {
+  id        String      @id @default(cuid())
+  caseId    String
+  actorId   String?     // Admin.id or PatulodUser.id
+  action    String      // e.g. "ASSIGNED", "STATUS_CHANGED", "NOTE_ADDED"
+  note      String?     @db.Text
+  timestamp DateTime    @default(now())
+
+  case      SupportCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+  @@map("support_case_events")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // e.g. DRIVER_ASSIGNED, TRIP_STARTED, SUPPORT_UPDATE
+  message   String
+  bookingId String?
+  read      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  user      PatulodUser        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs      NotificationLog[]
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+// FCM delivery tracking — deduplication and failure recording
+model NotificationLog {
+  id             String       @id @default(cuid())
+  notificationId String
+  channel        String       // FCM, IN_APP
+  status         String       // SENT, FAILED, DUPLICATE
+  attemptedAt    DateTime     @default(now())
+
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@map("notification_logs")
+}
+
+// ─────────────────────────────────────────────
+// Phase 5 — Driver Onboarding & Operations
+// ─────────────────────────────────────────────
+
+model DriverApplication {
+  id               String       @id @default(cuid())
+  userId           String       @unique  // Links to PatulodUser.id
+  fullName         String
+  email            String
+  phone            String
+  vehicleType      String       // motorcycle, tricycle
+  plateNumber      String
+  vehicleModel     String
+  vehicleColor     String
+  status           DriverStatus @default(PENDING)
+  submittedAt      DateTime     @default(now())
+  reviewedAt       DateTime?
+  reviewedBy       String?      // Admin.id who reviewed
+  rejectionReason  String?
+  notes            String?      @db.Text
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Relations
+  user             PatulodUser        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents        DriverDocument[]
+
+  @@map("driver_applications")
+}
+
+
+model DriverDocument {
+  id            String    @id @default(cuid())
+  applicationId String
+  type          String    // e.g. DRIVERS_LICENSE, OR_CR, NBI_CLEARANCE, SELFIE
+  storageUrl    String    // Supabase Storage path — not public
+  uploadedAt    DateTime  @default(now())
+  reviewStatus  String    @default("PENDING")  // PENDING, APPROVED, REJECTED
+  expiryDate    DateTime?
+
+  application   DriverApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
   @@map("driver_documents")
+}
+
+// Online/offline availability per driver
+model DriverAvailability {
+  id         String      @id @default(cuid())
+  driverId   String      @unique
+  isOnline   Boolean     @default(false)
+  lastSeenAt DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  driver     PatulodUser @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@map("driver_availability")
 }

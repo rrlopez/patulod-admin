@@ -227,6 +227,7 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
           // Create driver application
           const application = await db.driverApplication.create({
             data: {
+              userId: patulodUser.id,
               fullName: body.fullName.trim(),
               email: body.email.toLowerCase().trim(),
               phone: normalizedPhone,

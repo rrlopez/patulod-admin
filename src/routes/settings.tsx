@@ -1,13 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Layout from '../components/Layout'
 import { ProtectedRoute } from '../lib/auth-middleware'
+import { useSession } from '../lib/auth-client'
+import { prismaQuery } from '../lib/prisma-client'
 
 export const Route = createFileRoute('/settings')({
   component: Settings,
 })
 
-type Tab = 'general' | 'commission' | 'notifications' | 'system'
+type Tab = 'profile' | 'general' | 'commission' | 'notifications' | 'system'
+
+interface AdminProfile {
+  id: string
+  fullName: string
+  email: string
+  phone: string | null
+  role: string
+  isActive: boolean
+}
 
 function Settings() {
   return (
@@ -18,7 +30,64 @@ function Settings() {
 }
 
 function SettingsContent() {
-  const [activeTab, setActiveTab] = useState<Tab>('general')
+  const [activeTab, setActiveTab] = useState<Tab>('profile')
+  const { data: session } = useSession()
+  const queryClient = useQueryClient()
+
+  // ── Fetch admin profile via /api/prisma ───────────────────────────
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useQuery<AdminProfile>({
+    queryKey: ['admin', 'profile'],
+    queryFn: () =>
+      prismaQuery<AdminProfile>({
+        model: 'admin',
+        operation: 'findFirst',
+        args: { where: { userId: session?.user?.id } },
+      }),
+    enabled: !!session?.user?.id,
+  })
+
+  // ── Form state (initialised from fetched profile) ─────────────────
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Sync form when profile loads
+  useState(() => {
+    if (profile) {
+      setFullName(profile.fullName)
+      setPhone(profile.phone ?? '')
+    }
+  })
+
+  // ── Update mutation ───────────────────────────────────────────────
+  const updateMutation = useMutation({
+    mutationFn: (data: { fullName: string; phone: string }) =>
+      prismaQuery({
+        model: 'admin',
+        operation: 'update',
+        args: {
+          where: { id: profile?.id },
+          data: {
+            fullName: data.fullName.trim(),
+            phone: data.phone.trim() || null,
+          },
+        },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'profile'] })
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    },
+  })
+
+  const handleProfileSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    updateMutation.mutate({ fullName, phone })
+  }
 
   return (
     <Layout>
@@ -37,10 +106,11 @@ function SettingsContent() {
               <h2 className="font-bold text-primary mb-2">Categories</h2>
               <div className="space-y-1">
                 {[
-                  { id: 'general', label: 'General', icon: '⚙️' },
-                  { id: 'commission', label: 'Commission', icon: '💰' },
+                  { id: 'profile',       label: 'Profile',       icon: '👤' },
+                  { id: 'general',       label: 'General',       icon: '⚙️' },
+                  { id: 'commission',    label: 'Commission',    icon: '💰' },
                   { id: 'notifications', label: 'Notifications', icon: '🔔' },
-                  { id: 'system', label: 'System', icon: '🖥️' },
+                  { id: 'system',        label: 'System',        icon: '🖥️' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -62,6 +132,123 @@ function SettingsContent() {
         <div className="lg:col-span-3">
           <div className="card bg-base-200 border border-base-300 shadow-sm">
             <div className="card-body">
+              {activeTab === 'profile' && (
+                <div>
+                  <h2 className="text-xl font-bold text-primary mb-4">My Profile</h2>
+
+                  {profileLoading && (
+                    <div className="flex items-center gap-3 text-base-content/60">
+                      <span className="loading loading-spinner loading-sm" />
+                      Loading profile…
+                    </div>
+                  )}
+
+                  {profileError && (
+                    <div className="alert alert-error mb-4">
+                      <span>Failed to load profile. Please refresh.</span>
+                    </div>
+                  )}
+
+                  {saveSuccess && (
+                    <div className="alert alert-success mb-4">
+                      <span>Profile updated successfully.</span>
+                    </div>
+                  )}
+
+                  {updateMutation.isError && (
+                    <div className="alert alert-error mb-4">
+                      <span>{(updateMutation.error as Error).message}</span>
+                    </div>
+                  )}
+
+                  {profile && (
+                    <form onSubmit={handleProfileSave} className="space-y-4">
+                      {/* Read-only fields */}
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Email</span>
+                        </label>
+                        <input
+                          type="email"
+                          value={profile.email}
+                          className="input input-bordered bg-base-300 cursor-not-allowed"
+                          disabled
+                        />
+                        <label className="label">
+                          <span className="label-text-alt">
+                            Email cannot be changed here
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Role</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={profile.role.replace(/_/g, ' ')}
+                          className="input input-bordered bg-base-300 cursor-not-allowed"
+                          disabled
+                        />
+                      </div>
+
+                      {/* Editable fields */}
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Full Name</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="input input-bordered"
+                          required
+                          minLength={2}
+                        />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Phone</span>
+                        </label>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="input input-bordered"
+                          placeholder="+63 917 123 4567"
+                        />
+                      </div>
+
+                      <div className="flex gap-2 mt-6 pt-4 border-t border-base-300">
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={updateMutation.isPending}
+                        >
+                          {updateMutation.isPending && (
+                            <span className="loading loading-spinner loading-xs" />
+                          )}
+                          Save Changes
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() => {
+                            setFullName(profile.fullName)
+                            setPhone(profile.phone ?? '')
+                          }}
+                          disabled={updateMutation.isPending}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+
               {activeTab === 'general' && (
                 <div>
                   <h2 className="text-xl font-bold text-primary mb-4">
@@ -245,10 +432,6 @@ function SettingsContent() {
                 </div>
               )}
 
-              <div className="flex gap-2 mt-6 pt-4 border-t border-base-300">
-                <button className="btn btn-primary">Save Changes</button>
-                <button className="btn btn-ghost">Cancel</button>
-              </div>
             </div>
           </div>
         </div>
