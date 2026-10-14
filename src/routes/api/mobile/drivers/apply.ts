@@ -77,15 +77,12 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
             } else {
               normalizedPhone = phoneNumber.number
 
-              // Check for duplicate phone
-              const existingPhone = await db.driverApplication.findFirst({
-                where: {
-                  phone: normalizedPhone,
-                  status: { in: ['PENDING', 'APPROVED'] },
-                },
+              // Check for duplicate phone in PatulodUser (both passengers and drivers)
+              const existingPhone = await db.patulodUser.findUnique({
+                where: { phone: normalizedPhone },
               })
               if (existingPhone) {
-                errors.phone = 'An application with this phone number already exists'
+                errors.phone = 'This phone number is already registered'
               }
             }
           } catch (error) {
@@ -220,8 +217,8 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
               fullName: body.fullName.trim(),
               phone: normalizedPhone,
               userId: signUpResult.user.id,
-              role: 'DRIVER', // Driver role, not Passenger
-              isActive: false, // Inactive until approved
+              role: 'DRIVER',
+              isActive: true, // Active from the start - they can log in to check status
             },
           })
 
@@ -282,6 +279,44 @@ export const Route = createFileRoute('/api/mobile/drivers/apply')({
           )
         } catch (error) {
           console.error('❌ Driver application error:', error)
+          
+          // Handle Better Auth errors
+          if (error && typeof error === 'object' && 'body' in error) {
+            const authError = error as { body?: { message?: string; code?: string } }
+            if (authError.body?.code === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL') {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  errors: { email: 'This email is already registered' },
+                } as DriverApplicationResponse),
+                {
+                  status: 400,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+          }
+          
+          // Handle Prisma unique constraint errors
+          if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code?: string; meta?: { target?: string[] } }
+            if (prismaError.code === 'P2002') {
+              const target = prismaError.meta?.target?.[0]
+              if (target === 'phone') {
+                return new Response(
+                  JSON.stringify({
+                    success: false,
+                    errors: { phone: 'This phone number is already registered' },
+                  } as DriverApplicationResponse),
+                  {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' },
+                  },
+                )
+              }
+            }
+          }
+          
           return new Response(
             JSON.stringify({
               success: false,

@@ -19,6 +19,7 @@ export const auth = betterAuth({
       maxAge: 5 * 60, // 5 minutes
     },
   },
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   plugins: [tanstackStartCookies()],
   advanced: {
     generateId: false, // Use Prisma's default ID generation

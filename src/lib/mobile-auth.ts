@@ -328,9 +328,15 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
       }
     }
 
-    // Check if user is active
-    if (!patulodUser.isActive) {
-      return { success: false, error: 'Your account is inactive' }
+    // For drivers, get their application status
+    let driverApplicationStatus: string | undefined
+    if (patulodUser.role === 'DRIVER') {
+      const application = await db.driverApplication.findFirst({
+        where: { email: body.email.toLowerCase() },
+        orderBy: { createdAt: 'desc' },
+        select: { status: true },
+      })
+      driverApplicationStatus = application?.status
     }
 
     // Create audit log
@@ -343,6 +349,7 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
         actorRole: patulodUser.role,
         metadata: {
           email: body.email,
+          driverApplicationStatus,
         },
       },
     })
@@ -355,6 +362,7 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
         email: signInResult.user.email,
         phone: patulodUser.phone,
         role: patulodUser.role,
+        driverApplicationStatus, // Include application status for drivers
       },
       session: {
         token,
