@@ -30,9 +30,18 @@ import { Route as ApiMobileAuthLoginRouteImport } from './routes/api/mobile/auth
 import { Route as ApiMobileAuthLogoutRouteImport } from './routes/api/mobile/auth/logout'
 import { Route as ApiMobileAuthMeRouteImport } from './routes/api/mobile/auth/me'
 import { Route as ApiMobileAuthRegisterRouteImport } from './routes/api/mobile/auth/register'
+import { Route as ApiMobileBookingsAcceptRouteImport } from './routes/api/mobile/bookings/accept'
+import { Route as ApiMobileBookingsActiveRouteImport } from './routes/api/mobile/bookings/active'
+import { Route as ApiMobileBookingsCancelRouteImport } from './routes/api/mobile/bookings/cancel'
+import { Route as ApiMobileBookingsConfirmRouteImport } from './routes/api/mobile/bookings/confirm'
+import { Route as ApiMobileBookingsCreateRouteImport } from './routes/api/mobile/bookings/create'
+import { Route as ApiMobileBookingsDeclineRouteImport } from './routes/api/mobile/bookings/decline'
 import { Route as ApiMobileDriversApplicationRouteImport } from './routes/api/mobile/drivers/application'
 import { Route as ApiMobileDriversApplyRouteImport } from './routes/api/mobile/drivers/apply'
 import { Route as ApiMobileDriversUploadDocumentRouteImport } from './routes/api/mobile/drivers/upload-document'
+import { Route as ApiMobileTripsArrivedRouteImport } from './routes/api/mobile/trips/arrived'
+import { Route as ApiMobileTripsCompleteRouteImport } from './routes/api/mobile/trips/complete'
+import { Route as ApiMobileTripsStartRouteImport } from './routes/api/mobile/trips/start'
 import { Route as ApiMobileUserMeRouteImport } from './routes/api/mobile/user/me'
 
 const IndexRoute = IndexRouteImport.update({
@@ -140,6 +149,38 @@ const ApiMobileAuthRegisterRoute = ApiMobileAuthRegisterRouteImport.update({
   path: '/api/mobile/auth/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileBookingsAcceptRoute = ApiMobileBookingsAcceptRouteImport.update({
+  id: '/api/mobile/bookings/accept',
+  path: '/api/mobile/bookings/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileBookingsActiveRoute = ApiMobileBookingsActiveRouteImport.update({
+  id: '/api/mobile/bookings/active',
+  path: '/api/mobile/bookings/active',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileBookingsCancelRoute = ApiMobileBookingsCancelRouteImport.update({
+  id: '/api/mobile/bookings/cancel',
+  path: '/api/mobile/bookings/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileBookingsConfirmRoute =
+  ApiMobileBookingsConfirmRouteImport.update({
+    id: '/api/mobile/bookings/confirm',
+    path: '/api/mobile/bookings/confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiMobileBookingsCreateRoute = ApiMobileBookingsCreateRouteImport.update({
+  id: '/api/mobile/bookings/create',
+  path: '/api/mobile/bookings/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileBookingsDeclineRoute =
+  ApiMobileBookingsDeclineRouteImport.update({
+    id: '/api/mobile/bookings/decline',
+    path: '/api/mobile/bookings/decline',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMobileDriversApplicationRoute =
   ApiMobileDriversApplicationRouteImport.update({
     id: '/api/mobile/drivers/application',
@@ -157,6 +198,21 @@ const ApiMobileDriversUploadDocumentRoute =
     path: '/api/mobile/drivers/upload-document',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiMobileTripsArrivedRoute = ApiMobileTripsArrivedRouteImport.update({
+  id: '/api/mobile/trips/arrived',
+  path: '/api/mobile/trips/arrived',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileTripsCompleteRoute = ApiMobileTripsCompleteRouteImport.update({
+  id: '/api/mobile/trips/complete',
+  path: '/api/mobile/trips/complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileTripsStartRoute = ApiMobileTripsStartRouteImport.update({
+  id: '/api/mobile/trips/start',
+  path: '/api/mobile/trips/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMobileUserMeRoute = ApiMobileUserMeRouteImport.update({
   id: '/api/mobile/user/me',
   path: '/api/mobile/user/me',
@@ -185,9 +241,18 @@ export interface FileRoutesByFullPath {
   '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
   '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
   '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
+  '/api/mobile/bookings/accept': typeof ApiMobileBookingsAcceptRoute
+  '/api/mobile/bookings/active': typeof ApiMobileBookingsActiveRoute
+  '/api/mobile/bookings/cancel': typeof ApiMobileBookingsCancelRoute
+  '/api/mobile/bookings/confirm': typeof ApiMobileBookingsConfirmRoute
+  '/api/mobile/bookings/create': typeof ApiMobileBookingsCreateRoute
+  '/api/mobile/bookings/decline': typeof ApiMobileBookingsDeclineRoute
   '/api/mobile/drivers/application': typeof ApiMobileDriversApplicationRoute
   '/api/mobile/drivers/apply': typeof ApiMobileDriversApplyRoute
   '/api/mobile/drivers/upload-document': typeof ApiMobileDriversUploadDocumentRoute
+  '/api/mobile/trips/arrived': typeof ApiMobileTripsArrivedRoute
+  '/api/mobile/trips/complete': typeof ApiMobileTripsCompleteRoute
+  '/api/mobile/trips/start': typeof ApiMobileTripsStartRoute
   '/api/mobile/user/me': typeof ApiMobileUserMeRoute
 }
 export interface FileRoutesByTo {
@@ -212,9 +277,18 @@ export interface FileRoutesByTo {
   '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
   '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
   '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
+  '/api/mobile/bookings/accept': typeof ApiMobileBookingsAcceptRoute
+  '/api/mobile/bookings/active': typeof ApiMobileBookingsActiveRoute
+  '/api/mobile/bookings/cancel': typeof ApiMobileBookingsCancelRoute
+  '/api/mobile/bookings/confirm': typeof ApiMobileBookingsConfirmRoute
+  '/api/mobile/bookings/create': typeof ApiMobileBookingsCreateRoute
+  '/api/mobile/bookings/decline': typeof ApiMobileBookingsDeclineRoute
   '/api/mobile/drivers/application': typeof ApiMobileDriversApplicationRoute
   '/api/mobile/drivers/apply': typeof ApiMobileDriversApplyRoute
   '/api/mobile/drivers/upload-document': typeof ApiMobileDriversUploadDocumentRoute
+  '/api/mobile/trips/arrived': typeof ApiMobileTripsArrivedRoute
+  '/api/mobile/trips/complete': typeof ApiMobileTripsCompleteRoute
+  '/api/mobile/trips/start': typeof ApiMobileTripsStartRoute
   '/api/mobile/user/me': typeof ApiMobileUserMeRoute
 }
 export interface FileRoutesById {
@@ -240,9 +314,18 @@ export interface FileRoutesById {
   '/api/mobile/auth/logout': typeof ApiMobileAuthLogoutRoute
   '/api/mobile/auth/me': typeof ApiMobileAuthMeRoute
   '/api/mobile/auth/register': typeof ApiMobileAuthRegisterRoute
+  '/api/mobile/bookings/accept': typeof ApiMobileBookingsAcceptRoute
+  '/api/mobile/bookings/active': typeof ApiMobileBookingsActiveRoute
+  '/api/mobile/bookings/cancel': typeof ApiMobileBookingsCancelRoute
+  '/api/mobile/bookings/confirm': typeof ApiMobileBookingsConfirmRoute
+  '/api/mobile/bookings/create': typeof ApiMobileBookingsCreateRoute
+  '/api/mobile/bookings/decline': typeof ApiMobileBookingsDeclineRoute
   '/api/mobile/drivers/application': typeof ApiMobileDriversApplicationRoute
   '/api/mobile/drivers/apply': typeof ApiMobileDriversApplyRoute
   '/api/mobile/drivers/upload-document': typeof ApiMobileDriversUploadDocumentRoute
+  '/api/mobile/trips/arrived': typeof ApiMobileTripsArrivedRoute
+  '/api/mobile/trips/complete': typeof ApiMobileTripsCompleteRoute
+  '/api/mobile/trips/start': typeof ApiMobileTripsStartRoute
   '/api/mobile/user/me': typeof ApiMobileUserMeRoute
 }
 export interface FileRouteTypes {
@@ -269,9 +352,18 @@ export interface FileRouteTypes {
     | '/api/mobile/auth/logout'
     | '/api/mobile/auth/me'
     | '/api/mobile/auth/register'
+    | '/api/mobile/bookings/accept'
+    | '/api/mobile/bookings/active'
+    | '/api/mobile/bookings/cancel'
+    | '/api/mobile/bookings/confirm'
+    | '/api/mobile/bookings/create'
+    | '/api/mobile/bookings/decline'
     | '/api/mobile/drivers/application'
     | '/api/mobile/drivers/apply'
     | '/api/mobile/drivers/upload-document'
+    | '/api/mobile/trips/arrived'
+    | '/api/mobile/trips/complete'
+    | '/api/mobile/trips/start'
     | '/api/mobile/user/me'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -296,9 +388,18 @@ export interface FileRouteTypes {
     | '/api/mobile/auth/logout'
     | '/api/mobile/auth/me'
     | '/api/mobile/auth/register'
+    | '/api/mobile/bookings/accept'
+    | '/api/mobile/bookings/active'
+    | '/api/mobile/bookings/cancel'
+    | '/api/mobile/bookings/confirm'
+    | '/api/mobile/bookings/create'
+    | '/api/mobile/bookings/decline'
     | '/api/mobile/drivers/application'
     | '/api/mobile/drivers/apply'
     | '/api/mobile/drivers/upload-document'
+    | '/api/mobile/trips/arrived'
+    | '/api/mobile/trips/complete'
+    | '/api/mobile/trips/start'
     | '/api/mobile/user/me'
   id:
     | '__root__'
@@ -323,9 +424,18 @@ export interface FileRouteTypes {
     | '/api/mobile/auth/logout'
     | '/api/mobile/auth/me'
     | '/api/mobile/auth/register'
+    | '/api/mobile/bookings/accept'
+    | '/api/mobile/bookings/active'
+    | '/api/mobile/bookings/cancel'
+    | '/api/mobile/bookings/confirm'
+    | '/api/mobile/bookings/create'
+    | '/api/mobile/bookings/decline'
     | '/api/mobile/drivers/application'
     | '/api/mobile/drivers/apply'
     | '/api/mobile/drivers/upload-document'
+    | '/api/mobile/trips/arrived'
+    | '/api/mobile/trips/complete'
+    | '/api/mobile/trips/start'
     | '/api/mobile/user/me'
   fileRoutesById: FileRoutesById
 }
@@ -351,9 +461,18 @@ export interface RootRouteChildren {
   ApiMobileAuthLogoutRoute: typeof ApiMobileAuthLogoutRoute
   ApiMobileAuthMeRoute: typeof ApiMobileAuthMeRoute
   ApiMobileAuthRegisterRoute: typeof ApiMobileAuthRegisterRoute
+  ApiMobileBookingsAcceptRoute: typeof ApiMobileBookingsAcceptRoute
+  ApiMobileBookingsActiveRoute: typeof ApiMobileBookingsActiveRoute
+  ApiMobileBookingsCancelRoute: typeof ApiMobileBookingsCancelRoute
+  ApiMobileBookingsConfirmRoute: typeof ApiMobileBookingsConfirmRoute
+  ApiMobileBookingsCreateRoute: typeof ApiMobileBookingsCreateRoute
+  ApiMobileBookingsDeclineRoute: typeof ApiMobileBookingsDeclineRoute
   ApiMobileDriversApplicationRoute: typeof ApiMobileDriversApplicationRoute
   ApiMobileDriversApplyRoute: typeof ApiMobileDriversApplyRoute
   ApiMobileDriversUploadDocumentRoute: typeof ApiMobileDriversUploadDocumentRoute
+  ApiMobileTripsArrivedRoute: typeof ApiMobileTripsArrivedRoute
+  ApiMobileTripsCompleteRoute: typeof ApiMobileTripsCompleteRoute
+  ApiMobileTripsStartRoute: typeof ApiMobileTripsStartRoute
   ApiMobileUserMeRoute: typeof ApiMobileUserMeRoute
 }
 
@@ -506,6 +625,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobileAuthRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/bookings/accept': {
+      id: '/api/mobile/bookings/accept'
+      path: '/api/mobile/bookings/accept'
+      fullPath: '/api/mobile/bookings/accept'
+      preLoaderRoute: typeof ApiMobileBookingsAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/bookings/active': {
+      id: '/api/mobile/bookings/active'
+      path: '/api/mobile/bookings/active'
+      fullPath: '/api/mobile/bookings/active'
+      preLoaderRoute: typeof ApiMobileBookingsActiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/bookings/cancel': {
+      id: '/api/mobile/bookings/cancel'
+      path: '/api/mobile/bookings/cancel'
+      fullPath: '/api/mobile/bookings/cancel'
+      preLoaderRoute: typeof ApiMobileBookingsCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/bookings/confirm': {
+      id: '/api/mobile/bookings/confirm'
+      path: '/api/mobile/bookings/confirm'
+      fullPath: '/api/mobile/bookings/confirm'
+      preLoaderRoute: typeof ApiMobileBookingsConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/bookings/create': {
+      id: '/api/mobile/bookings/create'
+      path: '/api/mobile/bookings/create'
+      fullPath: '/api/mobile/bookings/create'
+      preLoaderRoute: typeof ApiMobileBookingsCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/bookings/decline': {
+      id: '/api/mobile/bookings/decline'
+      path: '/api/mobile/bookings/decline'
+      fullPath: '/api/mobile/bookings/decline'
+      preLoaderRoute: typeof ApiMobileBookingsDeclineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mobile/drivers/application': {
       id: '/api/mobile/drivers/application'
       path: '/api/mobile/drivers/application'
@@ -525,6 +686,27 @@ declare module '@tanstack/react-router' {
       path: '/api/mobile/drivers/upload-document'
       fullPath: '/api/mobile/drivers/upload-document'
       preLoaderRoute: typeof ApiMobileDriversUploadDocumentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/trips/arrived': {
+      id: '/api/mobile/trips/arrived'
+      path: '/api/mobile/trips/arrived'
+      fullPath: '/api/mobile/trips/arrived'
+      preLoaderRoute: typeof ApiMobileTripsArrivedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/trips/complete': {
+      id: '/api/mobile/trips/complete'
+      path: '/api/mobile/trips/complete'
+      fullPath: '/api/mobile/trips/complete'
+      preLoaderRoute: typeof ApiMobileTripsCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/trips/start': {
+      id: '/api/mobile/trips/start'
+      path: '/api/mobile/trips/start'
+      fullPath: '/api/mobile/trips/start'
+      preLoaderRoute: typeof ApiMobileTripsStartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/mobile/user/me': {
@@ -559,9 +741,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMobileAuthLogoutRoute: ApiMobileAuthLogoutRoute,
   ApiMobileAuthMeRoute: ApiMobileAuthMeRoute,
   ApiMobileAuthRegisterRoute: ApiMobileAuthRegisterRoute,
+  ApiMobileBookingsAcceptRoute: ApiMobileBookingsAcceptRoute,
+  ApiMobileBookingsActiveRoute: ApiMobileBookingsActiveRoute,
+  ApiMobileBookingsCancelRoute: ApiMobileBookingsCancelRoute,
+  ApiMobileBookingsConfirmRoute: ApiMobileBookingsConfirmRoute,
+  ApiMobileBookingsCreateRoute: ApiMobileBookingsCreateRoute,
+  ApiMobileBookingsDeclineRoute: ApiMobileBookingsDeclineRoute,
   ApiMobileDriversApplicationRoute: ApiMobileDriversApplicationRoute,
   ApiMobileDriversApplyRoute: ApiMobileDriversApplyRoute,
   ApiMobileDriversUploadDocumentRoute: ApiMobileDriversUploadDocumentRoute,
+  ApiMobileTripsArrivedRoute: ApiMobileTripsArrivedRoute,
+  ApiMobileTripsCompleteRoute: ApiMobileTripsCompleteRoute,
+  ApiMobileTripsStartRoute: ApiMobileTripsStartRoute,
   ApiMobileUserMeRoute: ApiMobileUserMeRoute,
 }
 export const routeTree = rootRouteImport

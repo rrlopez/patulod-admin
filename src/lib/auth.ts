@@ -3,6 +3,11 @@ import { tanstackStartCookies } from 'better-auth/tanstack-start'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { db } from '../db'
 
+// Verify the secret is loaded
+const authSecret = process.env.BETTER_AUTH_SECRET || 'dev-secret-please-change-in-production'
+console.log('🔐 Better Auth initializing with secret:', authSecret ? '✅ SET' : '❌ NOT SET')
+console.log('🔐 Secret preview:', authSecret.substring(0, 10) + '...')
+
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: 'postgresql',
@@ -10,6 +15,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Set to true in production
+    autoSignIn: true, // Auto sign in after registration
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
@@ -20,6 +26,7 @@ export const auth = betterAuth({
     },
   },
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+  secret: authSecret,
   plugins: [tanstackStartCookies()],
   advanced: {
     generateId: false, // Use Prisma's default ID generation

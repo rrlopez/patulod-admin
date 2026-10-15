@@ -114,6 +114,8 @@ export async function registerPassenger(body: RegisterRequest): Promise<AuthResp
 
     // Create Better Auth user using signUp API
     try {
+      console.log('📝 Attempting to create Better Auth user for:', body.email.toLowerCase())
+      
       const signUpResult = await auth.api.signUpEmail({
         body: {
           email: body.email.toLowerCase(),
@@ -124,11 +126,29 @@ export async function registerPassenger(body: RegisterRequest): Promise<AuthResp
       })
 
       if (!signUpResult) {
-        console.error('Better Auth signUp returned null/undefined')
+        console.error('❌ Better Auth signUp returned null/undefined')
         return { success: false, error: 'Failed to create account' }
       }
 
       console.log('✅ Better Auth user created:', signUpResult.user.id)
+      
+      // Verify account record was created
+      const accountCheck = await db.account.findFirst({
+        where: { userId: signUpResult.user.id },
+      })
+      
+      if (!accountCheck) {
+        console.error('❌ CRITICAL: User created but account record missing!')
+        console.error('   This will prevent login. User ID:', signUpResult.user.id)
+        // Delete the orphaned user
+        await db.user.delete({ where: { id: signUpResult.user.id } })
+        return { 
+          success: false, 
+          error: 'Account creation failed. Please try again or contact support.' 
+        }
+      }
+      
+      console.log('✅ Account record verified:', accountCheck.id, 'providerId:', accountCheck.providerId)
 
       // Extract session token
       let token: string
@@ -248,6 +268,25 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
     // Basic validation
     if (!body.email || !body.password) {
       return { success: false, error: 'Email and password are required' }
+    }
+
+    console.log('🔍 Login attempt for:', body.email.toLowerCase())
+
+    // Check if user exists first
+    const existingUser = await db.user.findUnique({
+      where: { email: body.email.toLowerCase() },
+      include: {
+        accounts: true,
+      },
+    })
+
+    console.log('👤 User found:', !!existingUser)
+    if (existingUser) {
+      console.log('📧 Email in DB:', existingUser.email)
+      console.log('🔑 Accounts:', existingUser.accounts.map(a => ({ 
+        providerId: a.providerId, 
+        hasPassword: !!a.password 
+      })))
     }
 
     // Use Better Auth's signIn API
@@ -383,6 +422,22 @@ export async function loginPassenger(body: LoginRequest): Promise<AuthResponse> 
     }
   } catch (error) {
     console.error('Login error:', error)
+    
+    // Check if it's a Better Auth APIError
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as { status: string; body?: { message?: string } }
+      console.error('Better Auth error status:', apiError.status)
+      console.error('Better Auth error body:', apiError.body)
+      
+      // Return more specific error
+      if (apiError.status === 'UNAUTHORIZED') {
+        return { 
+          success: false, 
+          error: 'Invalid email or password. Please check your credentials and try again.' 
+        }
+      }
+    }
+    
     return { success: false, error: 'Login failed. Please try again.' }
   }
 }

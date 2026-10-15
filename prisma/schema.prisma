@@ -508,6 +508,21 @@ model NotificationLog {
 }
 
 // ─────────────────────────────────────────────
+// System Configuration
+// ─────────────────────────────────────────────
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  
+  @@map("system_configs")
+}
+
+// ─────────────────────────────────────────────
 // Phase 5 — Driver Onboarding & Operations
 // ─────────────────────────────────────────────
 
